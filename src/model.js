@@ -4,9 +4,9 @@ function Ship(length){
     const isSunk = ()=>{
         return totalHits === length
     }
-    
+
     const hit = ()=>{
-        if(!isSunk){
+        if(!isSunk()){
             totalHits++;
         }
         return totalHits;
@@ -24,6 +24,21 @@ function Gameboard(){
     const Vertical = "vertical";
     const rangeMax = 9;
     const rangeMin = 0;
+    let Carrier = Ship(5);
+    let Battleship = Ship(4);
+    let Cruiser = Ship(3);
+    let Submarine = Ship(3);
+    let Destroyer = Ship(2);
+
+    const Status = {"Undeployed": 0,
+                    "Deployed": 1,
+                    "Sunk": -1};
+
+    const Ships = {"Carrier":[Carrier, Status.Undeployed], 
+                   "Battleship":[Battleship, Status.Undeployed], 
+                   "Cruiser":[Cruiser, Status.Undeployed], 
+                   "Submarine":[Submarine, Status.Undeployed], 
+                   "Destroyer":[Destroyer, Status.Undeployed]};
 
     let gameBoard = [];
     // 0 for empty space, 1 for space occupied by a ship.
@@ -57,7 +72,7 @@ function Gameboard(){
 
     const boundCheck = (coord)=>{
         if(coord[0] < rangeMin || coord[0] > rangeMax || coord[1] < rangeMin || coord[1] > rangeMax){
-            console.log("out of bounds");
+            console.log("error, out of bounds");
             return false;
         }
         return true;
@@ -68,7 +83,7 @@ function Gameboard(){
         let y = startCoord[1];
         for(let i=0; i<shipLength; i++){
             if(gameBoard[y][x] == 1){
-                console.log("collision detected")
+                console.log("error, collision detected")
                 return false;
             }
             if(direction == Horizontal){
@@ -83,15 +98,31 @@ function Gameboard(){
     const isPlacementValid = (startCoord, endCoord, direction, shipLength)=>{
         return(boundCheck(startCoord) && boundCheck(endCoord) && isSpaceEmpty(direction, startCoord, shipLength))
     }
+    const isShipValid =(shipName)=>{
+        let shipData = Ships[shipName];
+        if(!shipData){
+            console.log("error, incorrect ship name")
+            return false;
+        }
+        if(shipData[1] !== Status.Undeployed){
+            console.log("error, can not place an already deployed or sunk ship");
+            return false;
+        }
+        return true;
+    }
 
-    const placeShip = (midCoord, direction, ship)=>{
+    const placeShip = (midCoord, direction, shipName)=>{
+        if(!isShipValid(shipName)){
+            return false;
+        }
+        let shipData = Ships[shipName];
+        let ship = shipData[0];
         let shipLength = ship.getLength();
         const {startCoord, endCoord} = getCoordinates(midCoord, direction, shipLength);
-        console.log(startCoord + " " + endCoord)
+        
         if(!isPlacementValid(startCoord, endCoord, direction, shipLength)){
-            return;
+            return false;
         }
-        console.log("correct placement");
         let x = startCoord[0];
         let y = startCoord[1];
         for(let i=0; i<shipLength; i++){
@@ -102,7 +133,10 @@ function Gameboard(){
                 y++;
             }
         }
+        shipData[1] = Status.Deployed;
+        return true;
     }
+
     const logBoard = ()=>{
         for (let i = 0; i < gameBoard.length; i++) {
             for (let j = 0; j < gameBoard[i].length; j++) {
@@ -115,21 +149,3 @@ function Gameboard(){
     return {placeShip, logBoard};
 }
 module.exports = {Ship, Gameboard};
-
-//quick tests
-// let gameBoard = Gameboard();
-// let ship5 = Ship(5);
-// let ship4 = Ship(4);
-// let ship2 = Ship(2);
-// gameBoard.placeShip([-1,-1], "vertical", ship5);
-// gameBoard.placeShip([1,0], "vertical", ship5);
-// gameBoard.placeShip([2,2], "vertical", ship5);
-// gameBoard.placeShip([1,7], "vertical", ship4);
-
-// gameBoard.placeShip([-1,-1], "horizontal", ship5);
-// gameBoard.placeShip([1,0], "horizontal", ship5);
-// gameBoard.placeShip([5,2], "horizontal", ship5);
-// gameBoard.placeShip([3,7], "horizontal", ship4);
-
-// gameBoard.placeShip([0,7], "horizontal", ship2);
-// gameBoard.logBoard();

@@ -41,15 +41,23 @@ describe('Gameboard', ()=>{
         gameBoard = Gameboard();
     })
 
-    test('placeShip() should not place a ship at invalid coordinates', ()=>{
-        let ship = Ship(3);
-        expect(gameBoard.placeShip([1,1],[1,10],"horizontal", ship)).toBe(false);
-        expect(gameBoard.placeShip([1,1],[3,1],"vertical", ship)).toBe(false);
+    test('placeShip() should not place a ship at invalid coodinates ', ()=>{
+        expect(gameBoard.placeShip([-1,-1], "vertical", "Carrier")).toBe(false);
+        expect(gameBoard.placeShip([1,0], "vertical", "Submarine")).toBe(false);
+        expect(gameBoard.placeShip([-1,-1], "horizontal", "Carrier")).toBe(false);
+        expect(gameBoard.placeShip([0,11], "horizontal", "Submarine")).toBe(false);
+        
     });
-    test('placeShip() should place a ship at valid coordinates', ()=>{
-        let ship = Ship(3);
-        expect(gameBoard.placeShip([1,1],[3,1],"horizontal", ship)).toBe(true);
-        expect(gameBoard.placeShip([1,1],[1,3],"vertical", ship)).toBe(true);
-
+    test("placeShip() should not place a ship if coordinates collide with another ship's position", ()=>{
+        expect(gameBoard.placeShip([2,2], "vertical", "Carrier")).toBe(true);
+        expect(gameBoard.placeShip([2,3], "vertical", "Carrier")).toBe(false);
+        expect(gameBoard.placeShip([2,6], "vertical", "Submarine")).toBe(true);
+        expect(gameBoard.placeShip([3,5], "horizontal", "Carrier")).toBe(false);
+    });
+    test("placeShip() should not allow for more than one instance of a ship on the board", ()=>{
+        expect(gameBoard.placeShip([2,2], "vertical", "Carrier")).toBe(true);
+        expect(gameBoard.placeShip([2,7], "vertical", "Submarine")).toBe(true);
+        expect(gameBoard.placeShip([1,2], "vertical", "Carrier")).toBe(false);
+        expect(gameBoard.placeShip([1,7], "vertical", "Submarine")).toBe(false);
     });
 })
