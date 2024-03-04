@@ -6,7 +6,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 module.exports = {
     mode: 'development',
     entry: {
-        // all: './src/pages/page1/allTasks.js',
+        controller: './src/controller.js',
 
     },
     output: {
@@ -25,18 +25,19 @@ module.exports = {
             use: ['html-loader'],
         },
         {
-            test: /\.(png|svg|jpg|jpeg|gif)$/i,
-            type: 'asset/resource',
+            test: /\.(png|svg|jpg|jpeg|gif|mp3|wav)$/i,
+            type: 'asset/resource'
         },
+
     ],
     },
     plugins: [
-        // new HtmlWebpackPlugin({
-        //     title: 'Development',
-        //     template: './src/pages/page1/all.html',
-        //     filename: 'all.html',
-        //     chunks: ['all']
-        // }),
+        new HtmlWebpackPlugin({
+            title: 'Development',
+            template: './src/index.html',
+            filename: 'index.html',
+            chunks: ['controller']
+        }),
         new MiniCssExtractPlugin({
             filename: '[name].min.css', // Output minified CSS filename
         }),
@@ -48,6 +49,6 @@ module.exports = {
     },
     devServer: {
         static: './dist',
-        watchFiles: ['./src/pages/page1/all.html'],
+        watchFiles: ['./src/index.html'],
     },
 };

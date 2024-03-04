@@ -144,6 +144,7 @@ function Gameboard(){
         }
         let x = startCoord[0];
         let y = startCoord[1];
+        //placing the ship on the board.
         for(let i=0; i<shipLength; i++){
             updateBoard(x, y, shipObj.id);
             if(direction == Horizontal){
@@ -164,6 +165,20 @@ function Gameboard(){
         });
         if(!check){console.log("all ships are not deployed yet")}
         return check;
+    }
+    const areShipsSunk = ()=>{
+        if(!areShipsOnBoard()){
+            return false;
+        }
+        let check = true;
+        Object.keys(Ships).forEach(shipName => {
+            if(Ships[shipName].status !== Status.sunk){
+                check = false;
+            }
+        });
+        if(!check){console.log("all ships are not sunk yet")}
+        return check;
+
     }
     const isAttackValid = (coord)=>{
         let x = coord[0];
@@ -189,7 +204,7 @@ function Gameboard(){
     }
     //attack can only proceed if all ships are deployed, coords are within bounds and not used previously for another attack.
     //attack is a hit if ship exists on coords, else, it's a miss.
-    //if hit update hits on the corresponding ship
+    //if hit, update hits on the corresponding ship
     //update board on both hit and miss
     //return true if hit, false if miss, undefined otherwise.
     const receiveAttack = (coord)=>{
@@ -225,6 +240,13 @@ function Gameboard(){
 
     return {placeShip, receiveAttack, logBoard};
 }
+
+function Player(name, pBoard, oppBoard){
+    const score = 0;
+    const playerName = name;
+    const enemyBoard = oppBoard;
+    const playerBoard = pBoard;
+} 
 module.exports = {Ship, Gameboard};
 
 // let gameBoard = Gameboard();
