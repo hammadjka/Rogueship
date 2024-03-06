@@ -120,7 +120,29 @@ const View = (function() {
             GameAudio.playSelectDialogue("pirate");
         }
     }
-    return {fadeIn, toggleMenuMusic, selectCharacter, resetSelectScreen}
+    const changeToGameScreen = ()=>{
+        resetSelectScreen();
+        document.querySelector("#closeModal").click();
+        document.querySelector("#content").style.display = "none";
+        document.querySelector("#gameScreen").style.display = "grid";
+        const leftSide = document.querySelector("#leftGrid");
+        const rightSide = document.querySelector("#rightGrid");
+
+        constructGrid([10,10], leftSide);
+        constructGrid([10,10], rightSide);
+    }
+    const constructGrid = (dimensions, parentDiv)=>{
+        for (let i = 0; i < dimensions[0]; i++) {
+            for(let j=0; j<dimensions[1]; j++){
+                const div = document.createElement('div');
+                // div.textContent = ;
+                div.classList.add("gridCell");
+                div.id = j + "," + i
+                parentDiv.appendChild(div);
+            }
+        }
+    }
+    return {fadeIn, toggleMenuMusic, selectCharacter, resetSelectScreen, changeToGameScreen}
 })();
 
 export default View;

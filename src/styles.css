@@ -26,7 +26,6 @@ body, html{
     background: url("./assets/menu/0.png");
     background-size: contain;
     background-repeat: repeat-x;
-    /* justify-content: center; */
 }
 #heading{
     display: grid;

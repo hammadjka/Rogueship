@@ -1,0 +1,49 @@
+#gameScreen{
+    display: none;
+    grid-auto-flow: column;
+    grid-template-columns: 1fr, auto;
+    grid-template-rows: 2fr 7fr;
+    grid-template-areas: 
+            "top top"
+            "left right";
+    background: url("./assets/menu/pos3.jpg");
+    background-size: contain;
+    background-repeat: repeat-x;    
+    width: 100vw;
+    height: 100vh;
+}
+#gsTop{
+    grid-area: top;
+    grid-column: span 2;
+    border-bottom: 1px solid black;
+}
+#gsLeft{
+    grid-area: left;
+}
+#gridRight{
+    grid-area: right;
+}
+#gsLeft, #gsRight{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#leftTop, #rightTop{
+    display: flex;
+    /* flex: 1; */
+}
+#leftGrid, #rightGrid{
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    margin: 50px;
+    border: 1px solid black
+}
+.gridCell{
+    background-color: rgba(0,0,0,0.2);
+    border: 0.5px dashed black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

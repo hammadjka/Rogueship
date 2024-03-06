@@ -1,4 +1,5 @@
 import './styles.css'
+import './gsStyles.css'
 import View from './view.js'
 
 const Controller = (function() {
@@ -32,4 +33,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+});
+
+document.body.addEventListener("click", function(event) {
+    if (event.target.classList.contains("ready")) {
+        View.changeToGameScreen();
+    }
 });
