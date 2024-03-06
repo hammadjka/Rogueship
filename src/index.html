@@ -28,7 +28,24 @@
     <div id="modal" class="modal fade">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div>some text</div>
+                <div class="modal-header">
+                    <h4 id="modalHeading">Choose your Captain</h4>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="select" id="pirate">
+                        <input type="radio">
+                        <button id="selectPirate"></button>
+                        <h6>Blackbeard</h6>
+                    </div>
+                    <div class="select" id="viking">
+                        <button  id="selectViking"></button>
+                        <h6>Björn</h6>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="ready">start game</button>
+                </div>
             </div>
         </div>
     </div>
