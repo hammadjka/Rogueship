@@ -3,7 +3,8 @@ import './gsStyles.css'
 import View from './view.js'
 
 const Controller = (function() {
-
+    let characterSelected;
+    return{characterSelected};
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     characterButtons.forEach(button => {
         button.addEventListener('click', (e)=>{
             View.selectCharacter(e.target);
+            Controller.characterSelected = e.target.id;
         })
     })
 
@@ -37,6 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.body.addEventListener("click", function(event) {
     if (event.target.classList.contains("ready")) {
-        View.changeToGameScreen();
+        View.changeToGameScreen(Controller.characterSelected);
     }
 });

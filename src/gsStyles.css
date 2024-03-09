@@ -1,21 +1,35 @@
+:root{
+    --cell-size: 40px;
+}
 #gameScreen{
     display: none;
     grid-auto-flow: column;
     grid-template-columns: 1fr, auto;
-    grid-template-rows: 2fr 7fr;
+    grid-template-rows: 2fr 9fr;
     grid-template-areas: 
             "top top"
             "left right";
-    background: url("./assets/menu/pos3.jpg");
-    background-size: contain;
-    background-repeat: repeat-x;    
+
     width: 100vw;
     height: 100vh;
+    background: url("./assets/menu/pos3.jpg");
+    background-size: contain;
+    background-repeat: repeat;    
 }
 #gsTop{
     grid-area: top;
     grid-column: span 2;
-    border-bottom: 1px solid black;
+    display: grid;
+    border-bottom: 4px solid black;
+    justify-content: center;
+    align-content: center;
+}
+#topGrid{
+    display: grid;
+    grid-template-columns: repeat(20, var(--cell-size));
+    grid-template-rows: repeat(3, var(--cell-size));
+    border: 2px solid black
+
 }
 #gsLeft{
     grid-area: left;
@@ -26,7 +40,8 @@
 #gsLeft, #gsRight{
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    margin-top: 30px;
+    /* justify-content: center; */
     align-items: center;
 }
 #leftTop, #rightTop{
@@ -35,15 +50,34 @@
 }
 #leftGrid, #rightGrid{
     display: grid;
-    grid-template-columns: repeat(10, 40px);
-    grid-template-rows: repeat(10, 40px);
-    margin: 50px;
-    border: 1px solid black
+    grid-template-columns: repeat(10, var(--cell-size));
+    grid-template-rows: repeat(10, var(--cell-size));
+    border: 2px solid black
+}
+#playerImage, #opponentImage{
+    width: 200px;
+    height: 210px;
 }
 .gridCell{
-    background-color: rgba(0,0,0,0.2);
-    border: 0.5px dashed black;
+    background-color: rgba(0,0,0,0.3);
     display: flex;
     justify-content: center;
     align-items: center;
+    border: 1px dashed black;
+}
+
+@media screen and (max-width: 1280px) {
+    :root{
+        --cell-size: 30px
+    }
+    #leftGrid, #rightGrid{
+        display: grid;
+        grid-template-columns: repeat(10, var(--cell-size));
+        grid-template-rows: repeat(10,  var(--cell-size));
+        border: 2px solid black
+    }
+}
+.placed{
+    width: var(--cell-size);
+    height: var(--cell-size); 
 }
