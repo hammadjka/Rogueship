@@ -25,28 +25,35 @@
             <button class="startButton" id="vsCpu">PvP (TBA)</button>
         </div>
     </div>
-
-        <div id="gameScreen">
-            <div id="gsTop">
+    <div id="gameScreen">
+        <div id="gsBackground"></div>
+        <div id="gsTop">
+            <div id="topBoardContainer">
                 <div id="topGrid">
-
                 </div>
-            </div>
-            <div id="gsLeft">
-                <div id="leftTop">
-                    <img id="playerImage" alt="">
-                </div>
-                <div id="leftGrid">
-                    
-                </div>
-            </div>
-            <div id="gsRight">
-                <div id="rightTop">
-                    <img id="opponentImage" alt="">
-                </div>
-                <div id="rightGrid"></div>
+                <img src="./assets/ships/horizontal/submarine.png" class="submarine"></img>
+                <img src="./assets/ships/horizontal/battleship.png" class="battleship"></img>
+                <img src="./assets/ships/horizontal/destroyer.png" class="destroyer"></img>
+                <img src="./assets/ships/horizontal/cruiser.png" class="cruiser"></img>
+                <img src="./assets/ships/horizontal/carrier.png" class="carrier"></img>
             </div>
         </div>
+        <div id="gsLeft">
+            <div id="leftTop">
+                <img id="playerImage" class="characterImage" alt="">
+            </div>
+            <div id="leftBoardContainer">
+                <div id="leftGrid"></div>
+            </div>
+            
+        </div>
+        <div id="gsRight">
+            <div id="rightTop">
+                <img id="opponentImage" class="characterImage" alt="">
+            </div>
+            <div id="rightGrid"></div>
+        </div>
+    </div>
 
 
     <div id="modal" class="modal fade">

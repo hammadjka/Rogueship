@@ -4,21 +4,6 @@ import volumeOff from './assets/menu/volume-off.svg';
 import pirateImg from './assets/characters/pidle2.gif'
 import vikingImg from './assets/characters/vikingIdle.gif'
 
-import cr1 from './assets/ships/cruiser/1.png';
-import cr2 from './assets/ships/cruiser/2.png';
-import cr3 from './assets/ships/cruiser/3.png';
-import cr4 from './assets/ships/cruiser/4.png';
-import cr5 from './assets/ships/cruiser/5.png';
-
-import bs1 from './assets/ships/battleship/1.png';
-import bs2 from './assets/ships/battleship/2.png';
-import bs3 from './assets/ships/battleship/3.png';
-import bs4 from './assets/ships/battleship/4.png';
-
-import su1 from './assets/ships/submarine/1.png';
-import su2 from './assets/ships/submarine/2.png';
-import su3 from './assets/ships/submarine/3.png';
-
 import menuMusic from './assets/sounds/GameMusic/Menu.wav'
 import levleMusic from './assets/sounds/GameMusic/Level.wav'
 
@@ -67,7 +52,10 @@ const GameAudio = (function(){
         }
         let dialogue =  dialogueObj[character][audioName];
         menu.volume = 0.35;
-        dialogue.play();
+        dialogue.play()
+            .catch((error) => {
+                console.log(error);
+            });
         dialogue.addEventListener('ended', function() {
             menu.volume = 0.7;
         });
@@ -152,6 +140,7 @@ const View = (function() {
         document.querySelector("#closeModal").click();
         document.querySelector("#content").style.display = "none";
         document.querySelector("#gameScreen").style.display = "grid";
+        document.querySelector("#gsBackground").style.display = "block";
         const leftGrid = document.querySelector("#leftGrid");
         const rightGrid = document.querySelector("#rightGrid");
         const topBar = document.querySelector("#topGrid");
@@ -177,43 +166,11 @@ const View = (function() {
         for (let i = 0; i < dimensions[0]; i++) {
             for(let j=0; j<dimensions[1]; j++){
                 const div = document.createElement('div');
-                const img = document.createElement('img');
                 div.classList.add("gridCell");
-                // div.id ="_" + j + "_" + i;
-                img.id = "_" + j + "_" + i;
-                div.appendChild(img);
+                div.id ="_" + j + "_" + i;
                 parentDiv.appendChild(div);
             }
         }
-
-        document.querySelector("#_2_0").src = bs1;
-        document.querySelector("#_2_0").classList.add("placed")
-        document.querySelector("#_2_1").src = bs2;
-        document.querySelector("#_2_1").classList.add("placed")
-        document.querySelector("#_2_2").src = bs3;
-        document.querySelector("#_2_2").classList.add("placed")
-        document.querySelector("#_2_3").src = bs4;
-        document.querySelector("#_2_3").classList.add("placed")
-
-        
-        document.querySelector("#_4_0").src = cr1;
-        document.querySelector("#_4_0").classList.add("placed")
-        document.querySelector("#_4_1").src = cr2;
-        document.querySelector("#_4_1").classList.add("placed")
-        document.querySelector("#_4_2").src = cr3;
-        document.querySelector("#_4_2").classList.add("placed")
-        document.querySelector("#_4_3").src = cr4;
-        document.querySelector("#_4_3").classList.add("placed")
-        document.querySelector("#_4_4").src = cr5;
-        document.querySelector("#_4_4").classList.add("placed")
-
-        document.querySelector("#_6_0").src = su1;
-        document.querySelector("#_6_0").classList.add("placed")
-        document.querySelector("#_6_1").src = su2;
-        document.querySelector("#_6_1").classList.add("placed")
-        document.querySelector("#_6_2").src = su3;
-        document.querySelector("#_6_2").classList.add("placed")
-
     }
     return {fadeIn, toggleMenuMusic, selectCharacter, resetSelectScreen, changeToGameScreen}
 })();
