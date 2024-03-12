@@ -4,16 +4,17 @@ describe('Ship', () => {
     let ship;
 
     beforeEach(() => {
-        ship = Ship(3);
+        ship = Ship(3, 1);
     });
     test('getLength() should return the length of the ship', () => {
         expect(ship.getLength()).toBe(3);
+        expect(ship.getWidth().toBe(1));
     });
     test('hit() should increment totalHits by 1', () => {
         expect(ship.hit()).toBe(1);
         expect(ship.hit()).toBe(2);
     });
-    test('isSunk() should return true ONLY when totalHits equals length', () => {
+    test('isSunk() should return true ONLY when totalHits equals length * width', () => {
         expect(ship.isSunk()).toBe(false);
         ship.hit();
         expect(ship.isSunk()).toBe(false);
@@ -34,7 +35,7 @@ describe('Gameboard > placeShip()', ()=>{
     let gameBoard;
 
     beforeEach(()=>{
-        gameBoard = Gameboard();
+        gameBoard = Gameboard(0,9);
     })
     test('should not place a ship at invalid coodinates ', ()=>{
         expect(gameBoard.placeShip([2,-1], "vertical", "Carrier")).toBe(false);
@@ -66,7 +67,7 @@ describe('Gameboard > placeShip()', ()=>{
 
 describe('Gameboard > receiveAttack()', ()=>{
     beforeEach(()=>{
-        gameBoard = Gameboard();
+        gameBoard = Gameboard(0,9);
         expect(gameBoard.placeShip([2,2], "vertical", "Carrier")).toBe(true);
         expect(gameBoard.placeShip([5,8], "horizontal", "Battleship")).toBe(true);
         expect(gameBoard.placeShip([2,7], "vertical", "Submarine")).toBe(true);
@@ -74,7 +75,7 @@ describe('Gameboard > receiveAttack()', ()=>{
         expect(gameBoard.placeShip([4,5], "horizontal", "Destroyer")).toBe(true);
     })
     test("should return undefined if any of the ships are undeployed", ()=>{
-        emptyBoard = Gameboard();
+        emptyBoard = Gameboard(0,9);
         expect(emptyBoard.receiveAttack([2,2])).toBe(undefined);
         expect(emptyBoard.placeShip([2,2], "vertical", "Carrier")).toBe(true);
         expect(emptyBoard.placeShip([5,8], "horizontal", "Battleship")).toBe(true);
@@ -98,5 +99,3 @@ describe('Gameboard > receiveAttack()', ()=>{
         expect(gameBoard.receiveAttack([3,2])).toBe(undefined);
     });
 })
-
-//collison is only testing against CA

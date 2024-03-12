@@ -1,9 +1,12 @@
 import './styles.css'
 import './gsStyles.css'
+import { Gameboard } from './model.js';
 import View from './view.js'
 
 const Controller = (function() {
     let characterSelected;
+    let topBoard = Gameboard(0,19);
+    console.log(topBoard.placeShip())
     return{characterSelected};
 })();
 
@@ -42,3 +45,5 @@ document.body.addEventListener("click", function(event) {
         View.changeToGameScreen(Controller.characterSelected);
     }
 });
+document.querySelector(".topShips").addEventListener("mouseenter", function(event){
+})

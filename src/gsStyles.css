@@ -95,49 +95,48 @@
     position: relative;
 }
 
-.carrier{
+.topShips{
     position: absolute;
+    z-index: -1;
+    pointer-events: auto;
+}
+#top-carrier{
     top: 1px;
     left: calc(14*var(--cell-size));
     height: calc(2*var(--cell-size));
     width: calc((5*var(--cell-size)));
-    z-index: -1;
 }
-.battleship {
-    position: absolute;
+#top-battleship {
     top: 1px;
     left: calc(6 * var(--cell-size) + 1px);
     height: calc(2*var(--cell-size));
     width: calc((4*var(--cell-size)));
-    z-index: -1;
 }
-.cruiser{
-    position: absolute;
+#top-cruiser{
     top:  calc(2 * var(--cell-size) + 1px);
     left: calc(10 * var(--cell-size) + 1px);
     height: calc(1*var(--cell-size));
     width: calc((3*var(--cell-size)));
-    z-index: -1;
 }
-.submarine {
-    position: absolute;
+#top-submarine {
     top: 1px;
     left: calc(1* var(--cell-size) + 1px);
     height: calc(var(--cell-size));
     width: calc((3*var(--cell-size)));
-    z-index: -1;
 }
-.destroyer{
-    position: absolute;
+#top-destroyer{
     top: calc(2* var(--cell-size) + 1px);
     left: calc(1* var(--cell-size) + 1px);
     height: calc(var(--cell-size));
     width: calc((2*var(--cell-size)));
-    z-index: -1;
 }
 
-@media screen and (max-width: 1280px) {
+@media screen and (max-width: 1500px) {
     :root{
-        --cell-size: 30px
+        --cell-size: 25px
+    }
+    #playerImage, #opponentImage{
+        width: 130px;
+        height: 135px;
     }
 }

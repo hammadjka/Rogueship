@@ -145,9 +145,9 @@ const View = (function() {
         const rightGrid = document.querySelector("#rightGrid");
         const topBar = document.querySelector("#topGrid");
         displayCharacters(characterName)
-        constructGrid([10,10], leftGrid);
-        constructGrid([10,10], rightGrid);
-        constructGrid([3,20], topBar);
+        constructGrid([10,10], leftGrid, "leftCells");
+        constructGrid([10,10], rightGrid, "rightCells");
+        constructGrid([3,20], topBar, "topCells");
         GameAudio.playBgMusic("stage");
     }
     const displayCharacters = (characterName)=>{
@@ -162,12 +162,13 @@ const View = (function() {
         }
         oppImg.style.transform = 'scaleX(-1)';
     }
-    const constructGrid = (dimensions, parentDiv)=>{
+    const constructGrid = (dimensions, parentDiv, cellClass)=>{
         for (let i = 0; i < dimensions[0]; i++) {
             for(let j=0; j<dimensions[1]; j++){
                 const div = document.createElement('div');
                 div.classList.add("gridCell");
-                div.id ="_" + j + "_" + i;
+                div.classList.add(cellClass);
+                div.classList.add("_" + j + "_" + i);
                 parentDiv.appendChild(div);
             }
         }

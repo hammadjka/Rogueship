@@ -1,8 +1,8 @@
-function Ship(length){
+function Ship(length, width){
     let totalHits = 0;
 
     const isSunk = ()=>{
-        return totalHits === length
+        return totalHits === length * width;
     }
 
     const hit = ()=>{
@@ -15,20 +15,21 @@ function Ship(length){
     const getLength = ()=>{
         return length;
     }
+    const getWidth = ()=>{
+        return width;
+    }
     
-    return {getLength, hit, isSunk};
+    return {getLength, getWidth, hit, isSunk};
 }
 
-function Gameboard(){
+function Gameboard(rangeMin, rangeMax){
     const Horizontal = "horizontal";
     const Vertical = "vertical";
-    const rangeMax = 9;
-    const rangeMin = 0;
-    let carrier = Ship(5);
-    let battleship = Ship(4);
-    let cruiser = Ship(3);
-    let submarine = Ship(3);
-    let destroyer = Ship(2);
+    let carrier = Ship(5,2);
+    let battleship = Ship(4,2);
+    let cruiser = Ship(3,1);
+    let submarine = Ship(3,1);
+    let destroyer = Ship(2,1);
 
     const Status = {"undeployed": 0,
                     "deployed": 1,
@@ -45,11 +46,11 @@ function Gameboard(){
                    "de": 5
     };
 
-    const Ships = {"Carrier":{"ship": carrier, "status": Status.undeployed, "id": Cells.ca}, 
-                   "Battleship":{"ship": battleship,"status":Status.undeployed, "id": Cells.ba}, 
-                   "Cruiser":{"ship": cruiser, "status": Status.undeployed,  "id": Cells.cr}, 
-                   "Submarine":{"ship": submarine, "status": Status.undeployed,  "id": Cells.su}, 
-                   "Destroyer":{"ship": destroyer, "status": Status.undeployed, "id": Cells.de}
+    const Ships = {"Carrier":{"ship": carrier, "status": Status.undeployed, "id": Cells.ca, "coordinates": []}, 
+                   "Battleship":{"ship": battleship,"status":Status.undeployed, "id": Cells.ba, "coordinates": []}, 
+                   "Cruiser":{"ship": cruiser, "status": Status.undeployed,  "id": Cells.cr}, "coordinates": [], 
+                   "Submarine":{"ship": submarine, "status": Status.undeployed,  "id": Cells.su, "coordinates": []}, 
+                   "Destroyer":{"ship": destroyer, "status": Status.undeployed, "id": Cells.de, "coordinates": []}
     };
 
     let gameBoard = [];
@@ -137,22 +138,27 @@ function Gameboard(){
         let shipObj = Ships[shipName];
         let ship = shipObj.ship;
         let shipLength = ship.getLength();
-        const {startCoord, endCoord} = getCoordinates(midCoord, direction, shipLength);
-        
+        let shipwidth = ship.getWidth();
+        let shipCoordinates = []; 
         if(!isPlacementValid(midCoord, direction, shipLength)){
             return false;
         }
-        let x = startCoord[0];
-        let y = startCoord[1];
-        //placing the ship on the board.
-        for(let i=0; i<shipLength; i++){
-            updateBoard(x, y, shipObj.id);
-            if(direction == Horizontal){
-                x++;
-            }else if(direction == Vertical){
-                y++;
+        for(let i=0; i<shipwidth; i++){
+            const {startCoord, endCoord} = getCoordinates(midCoord, direction, shipLength);
+            let x = startCoord[0];
+            let y = startCoord[1];
+            for(let j=0; j<shipLength; j++){
+                shipCoordinates.push([x,y]);
+                direction === Horizontal ? x++ : y++;
             }
+            direction === Horizontal ? midCoord[1]++ : midCoord[0]++;
         }
+        shipObj.coordinates = shipCoordinates;
+        shipCoordinates.forEach(coord => {
+            const x = coord[0];
+            const y = coord[1];
+            updateBoard(x, y, shipObj.id);
+        });
         shipObj.status = Status.deployed;
         return true;
     }
@@ -249,14 +255,14 @@ function Player(name, pBoard, oppBoard){
 } 
 module.exports = {Ship, Gameboard};
 
-// let gameBoard = Gameboard();
-// gameBoard.placeShip([2,2], "vertical", "Carrier")
-// gameBoard.placeShip([5,8], "horizontal", "Battleship")
-// gameBoard.placeShip([2,7], "vertical", "Submarine")
-// gameBoard.placeShip([7,2], "horizontal", "Cruiser")
-// gameBoard.placeShip([4,5], "horizontal", "Destroyer")
+let gameBoard = Gameboard();
+gameBoard.placeShip([2,2], "vertical", "Carrier")
+gameBoard.placeShip([5,8], "horizontal", "Battleship")
+gameBoard.placeShip([2,7], "vertical", "Submarine")
+gameBoard.placeShip([7,2], "horizontal", "Cruiser")
+gameBoard.placeShip([4,5], "horizontal", "Destroyer")
 
-// gameBoard.logBoard();
+gameBoard.logBoard();
 
 // gameBoard.placeShip([9,0], "horizontal", "Cruiser")
 
