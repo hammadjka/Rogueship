@@ -15,9 +15,12 @@ body, html{
     font-size: 1rem;
     background: linear-gradient(180deg, rgba(90,191,222,1) 0%, rgba(18,145,185,1) 28%, rgba(13,66,142,1) 72%, rgba(12,17,130,1) 100%);
     background: url("./assets/menu/4.png"); 
-    z-index: -4;
+    z-index: -2;
     background-size: cover;
 
+}
+img{
+    user-select: none;
 }
 #content{
     display: flex;
@@ -27,8 +30,6 @@ body, html{
     background: url("./assets/menu/0.png");
     background-size: contain;
     background-repeat: repeat-x;
-    z-index: -4;
-    /* justify-content: center; */
 }
 #heading{
     display: grid;

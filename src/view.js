@@ -6,6 +6,7 @@ import vikingImg from './assets/characters/vikingIdle.gif'
 
 import menuMusic from './assets/sounds/GameMusic/Menu.wav'
 import levleMusic from './assets/sounds/GameMusic/Level.wav'
+import combatMusic from './assets/sounds/GameMusic/Combat.wav'
 
 import viking1 from './assets/sounds/VikingDialogue/sheildTosheild.wav'
 import viking2 from './assets/sounds/VikingDialogue/thorJudge.wav'
@@ -20,7 +21,9 @@ import pirate4 from './assets/sounds/PirateDialogue/battenHatches.wav'
 const GameAudio = (function(){
     const menu = new Audio(menuMusic);
     const stage = new Audio(levleMusic);
+    const combat = new Audio(combatMusic);
     menu.volume = 0.7;
+    combat.volume = 0.7;
 
     const V_SelectD1 = new Audio(viking1);
     const V_SelectD2 = new Audio(viking2);
@@ -34,7 +37,7 @@ const GameAudio = (function(){
 
 
 
-    const bgMusic = {menu, stage};
+    const bgMusic = {menu, stage, combat};
     const dialogueObj = {
                         "viking": {V_SelectD1, V_SelectD2, V_SelectD3, V_SelectD4},
                         "pirate": {P_SelectD1, P_SelectD2, P_SelectD3, P_SelectD4}
@@ -89,6 +92,14 @@ const GameAudio = (function(){
 })();
 
 const View = (function() {
+    const shipCoordinates = {
+        "top-carrier":[[14,0],[15,0],[16,0],[17,0],[18,0],[14,1],[15,1],[16,1],[17,1],[18,1]], 
+        "top-battleship":[[6,0],[7,0],[8,0],[9,0],[6,1],[7,1],[8,1],[9,1]], 
+        "top-cruiser":[[10,2],[11,2],[12,2]], 
+        "top-submarine":[[1,0], [2,0], [3,0]], 
+        "top-destroyer":[[1,2], [2,2]]
+    }
+
     const toggleMenuMusic = (button)=>{
         let img = document.querySelector("#volImg");
         if(button.classList.contains("off")){
@@ -162,6 +173,59 @@ const View = (function() {
         }
         oppImg.style.transform = 'scaleX(-1)';
     }
+
+    const cellsAddClass = (cells, coordinates, cellClass)=>{
+        coordinates.forEach(coordinate =>{
+            cells[coordinate[1]*20 + coordinate[0]].classList.add(cellClass);
+        })
+    }
+    const cellsRemoveClass = (cells, coordinates, cellClass)=>{
+        coordinates.forEach(coordinate =>{
+            cells[coordinate[1]*20 + coordinate[0]].classList.remove(cellClass);
+        })
+    }
+    
+    //mouseenter behaviour to set hover effects
+    const topShipsHover = (shipId) => {
+        let ship = document.getElementById(shipId);
+        if(ship.classList.contains("selected")){
+            return; //can't hover over ship if it's currently selected
+        }
+        const coordinates = shipCoordinates[shipId];
+        let topCells = document.querySelectorAll(".topCells")
+        cellsAddClass(topCells, coordinates, "cellHover");
+        ship.classList.add("shipHover");
+    }
+
+    //mouseleave behavior to reset hover effects
+    const topShipsDefault = (shipId)=>{
+        const coordinates = shipCoordinates[shipId];
+        let topCells = document.querySelectorAll(".topCells")
+        cellsRemoveClass(topCells, coordinates, "cellHover");
+        document.getElementById(shipId).classList.remove("shipHover");
+    }
+    
+    //click behavior to show ship is selected.
+    const topShipSelected = (shipId)=>{
+        let topCells = document.querySelectorAll(".topCells")
+        let coordinates;
+        //reset ships that might have been selected and unmark corresponding cells. 
+        for(let shipName in shipCoordinates){
+            let ship =  document.getElementById(shipName);
+            coordinates = shipCoordinates[shipName];
+            if(ship.classList.contains("selected")){
+                cellsRemoveClass(topCells, coordinates, "cellSelected");
+                ship.classList.remove("selected"); //unselect the ship
+            }
+        }
+        //select the required ship, mark the cells
+        coordinates = shipCoordinates[shipId];
+        cellsAddClass(topCells, coordinates, "cellSelected");
+        topShipsDefault(shipId);
+        document.getElementById(shipId).classList.add("selected"); //to mark the ship as selected, so hover effects are ignored.
+
+    }
+
     const constructGrid = (dimensions, parentDiv, cellClass)=>{
         for (let i = 0; i < dimensions[0]; i++) {
             for(let j=0; j<dimensions[1]; j++){
@@ -173,7 +237,15 @@ const View = (function() {
             }
         }
     }
-    return {fadeIn, toggleMenuMusic, selectCharacter, resetSelectScreen, changeToGameScreen}
+    return {fadeIn, 
+        toggleMenuMusic, 
+        selectCharacter, 
+        resetSelectScreen, 
+        changeToGameScreen, 
+        topShipsDefault, 
+        topShipsHover,
+        topShipSelected,
+    }
 })();
 
 export default View;

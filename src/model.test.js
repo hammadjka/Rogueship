@@ -4,30 +4,35 @@ describe('Ship', () => {
     let ship;
 
     beforeEach(() => {
-        ship = Ship(3, 1);
+        ship = Ship(5, 2);
     });
     test('getLength() should return the length of the ship', () => {
-        expect(ship.getLength()).toBe(3);
-        expect(ship.getWidth().toBe(1));
+        expect(ship.getLength()).toBe(5);
+        expect(ship.getWidth()).toBe(2);
     });
     test('hit() should increment totalHits by 1', () => {
         expect(ship.hit()).toBe(1);
         expect(ship.hit()).toBe(2);
     });
     test('isSunk() should return true ONLY when totalHits equals length * width', () => {
-        expect(ship.isSunk()).toBe(false);
-        ship.hit();
-        expect(ship.isSunk()).toBe(false);
-        ship.hit();
-        expect(ship.isSunk()).toBe(false);
-        ship.hit();
+        for(let i=0; i<ship.getWidth(); i++){
+            for(let j=0; j<ship.getLength(); j++){
+                expect(ship.isSunk()).toBe(false);
+                ship.hit();
+            }
+        }
         expect(ship.isSunk()).toBe(true);
     });
     test('hit() should not increment totalHits once the ship has been sunk', () => {
-        expect(ship.hit()).toBe(1);
-        expect(ship.hit()).toBe(2);
-        expect(ship.hit()).toBe(3);
-        expect(ship.hit()).toBe(3);
+        for(let i=0; i<ship.getWidth(); i++){
+            for(let j=0; j<ship.getLength(); j++){
+                expect(ship.isSunk()).toBe(false);
+                ship.hit();
+            }
+        }
+        expect(ship.hit()).toBe(10);
+        ship.hit();
+        expect(ship.hit()).toBe(10);
     });
 });
 
@@ -35,7 +40,7 @@ describe('Gameboard > placeShip()', ()=>{
     let gameBoard;
 
     beforeEach(()=>{
-        gameBoard = Gameboard(0,9);
+        gameBoard = Gameboard();
     })
     test('should not place a ship at invalid coodinates ', ()=>{
         expect(gameBoard.placeShip([2,-1], "vertical", "Carrier")).toBe(false);
@@ -67,15 +72,15 @@ describe('Gameboard > placeShip()', ()=>{
 
 describe('Gameboard > receiveAttack()', ()=>{
     beforeEach(()=>{
-        gameBoard = Gameboard(0,9);
-        expect(gameBoard.placeShip([2,2], "vertical", "Carrier")).toBe(true);
-        expect(gameBoard.placeShip([5,8], "horizontal", "Battleship")).toBe(true);
-        expect(gameBoard.placeShip([2,7], "vertical", "Submarine")).toBe(true);
-        expect(gameBoard.placeShip([7,2], "horizontal", "Cruiser")).toBe(true);
-        expect(gameBoard.placeShip([4,5], "horizontal", "Destroyer")).toBe(true);
+        gameBoard = Gameboard();
+        gameBoard.placeShip([2,2], "vertical", "Carrier")
+        gameBoard.placeShip([5,8], "horizontal", "Battleship")
+        gameBoard.placeShip([2,7], "vertical", "Submarine")
+        gameBoard.placeShip([7,2], "horizontal", "Cruiser")
+        gameBoard.placeShip([4,5], "horizontal", "Destroyer")
     })
     test("should return undefined if any of the ships are undeployed", ()=>{
-        emptyBoard = Gameboard(0,9);
+        emptyBoard = Gameboard();
         expect(emptyBoard.receiveAttack([2,2])).toBe(undefined);
         expect(emptyBoard.placeShip([2,2], "vertical", "Carrier")).toBe(true);
         expect(emptyBoard.placeShip([5,8], "horizontal", "Battleship")).toBe(true);
@@ -90,12 +95,12 @@ describe('Gameboard > receiveAttack()', ()=>{
         expect(gameBoard.receiveAttack([2,2])).toBe(true);
     });
     test("should return false if coords misses a ship", ()=>{
-        expect(gameBoard.receiveAttack([3,2])).toBe(false);
+        expect(gameBoard.receiveAttack([4,2])).toBe(false);
     });
     test("should return undefined if an attack is repeated", ()=>{
         expect(gameBoard.receiveAttack([2,2])).toBe(true);
         expect(gameBoard.receiveAttack([2,2])).toBe(undefined);
-        expect(gameBoard.receiveAttack([3,2])).toBe(false);
-        expect(gameBoard.receiveAttack([3,2])).toBe(undefined);
+        expect(gameBoard.receiveAttack([4,2])).toBe(false);
+        expect(gameBoard.receiveAttack([4,2])).toBe(undefined);
     });
 })

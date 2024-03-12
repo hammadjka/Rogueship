@@ -5,9 +5,8 @@ import View from './view.js'
 
 const Controller = (function() {
     let characterSelected;
-    let topBoard = Gameboard(0,19);
-    console.log(topBoard.placeShip())
-    return{characterSelected};
+    let shipSelected;
+    return{characterSelected, shipSelected};
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -45,5 +44,25 @@ document.body.addEventListener("click", function(event) {
         View.changeToGameScreen(Controller.characterSelected);
     }
 });
-document.querySelector(".topShips").addEventListener("mouseenter", function(event){
+
+let topShips = document.querySelectorAll(".topShips");
+topShips.forEach(ship =>{
+    ship.addEventListener("mouseenter", function(event){
+        View.topShipsHover(event.target.id);
+    })
+    ship.addEventListener("mouseleave", function(event){
+        View.topShipsDefault(event.target.id);
+    })
+    ship.addEventListener("click", function(e){
+        View.topShipSelected(e.target.id);
+        Controller.shipSelected = e.target.id;
+        console.log(Controller.shipSelected)
+    })
+})
+
+let leftGrid = document.querySelector("#leftGrid");
+leftGrid.addEventListener("click", function(e){
+    if(e.target.classList.contains("gridCell") && shipSelected != null){
+        
+    }
 })
