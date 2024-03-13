@@ -1,12 +1,13 @@
 import './styles.css'
 import './gsStyles.css'
-import { Gameboard } from './model.js';
+import { Player } from './model.js';
 import View from './view.js'
 
 const Controller = (function() {
     let characterSelected;
     let shipSelected;
-    return{characterSelected, shipSelected};
+    let player1 = Player();
+    return{characterSelected, shipSelected, player1};
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -63,6 +64,6 @@ topShips.forEach(ship =>{
 let leftGrid = document.querySelector("#leftGrid");
 leftGrid.addEventListener("click", function(e){
     if(e.target.classList.contains("gridCell") && shipSelected != null){
-        
+        Controller.player1
     }
 })
