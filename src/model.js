@@ -87,35 +87,48 @@ function Gameboard(){
         return {startCoord, endCoord};
     }
 
-    const boundCheck = (coord)=>{
+    const isWithinBounds = (coord)=>{
         if(coord[0] < rangeMin || coord[0] > rangeMax || coord[1] < rangeMin || coord[1] > rangeMax){
-            console.log("error, out of bounds");
+            // console.log("invalid coords, out of bounds");
             return false;
         }
         return true;
     }
+    const getOutOfBoundCoords = (coords)=>{
+        let invalidCoordinates = [];
+        coords.forEach(coord => {
+            if(!isWithinBounds(coord)){
+                invalidCoordinates.push(coord);
+            }
+        });
+        return invalidCoordinates;
+    }
 
-    const isSpaceEmpty = (direction, startCoord, shipLength)=>{
+    const isSpaceEmpty = (direction, startCoord, length)=>{
         let x = startCoord[0];
         let y = startCoord[1];
         const Ids = [Cells.ca, Cells.ba, Cells.cr, Cells.su, Cells.de];
-        for(let i=0; i<shipLength; i++){
+        for(let i=0; i<length; i++){
             if(Ids.includes(gameBoard[y][x])){
-                console.log("error, collision detected")
+                // console.log("invalid coords, collision detected")
                 return false;
             }
-            if(direction == Horizontal){
-                x++;
-            }else if(direction == Vertical){
-                y++;
-            }
+            direction === Horizontal ? x++ : y++;
         }
         return true;
     }
 
-    const isPlacementValid = (midCoord, direction, shipLength)=>{
-        const {startCoord, endCoord} = coordBounds(midCoord, direction, shipLength);
-        return(boundCheck(startCoord) && boundCheck(endCoord) && isSpaceEmpty(direction, startCoord, shipLength))
+    const isPlacementValid = (midCoord, direction, shipName)=>{
+        let shipLength = Fleet[shipName].ship.getLength();
+        let shipWidth = Fleet[shipName].ship.getWidth();
+        for(let i=0; i<shipWidth; i++){
+            const {startCoord, endCoord} = coordBounds(midCoord, direction, shipLength);
+            if(!(isWithinBounds(startCoord) && isWithinBounds(endCoord) && isSpaceEmpty(direction, startCoord, shipLength))){
+                return false;
+            }
+            direction === Horizontal ? midCoord[1]++ : midCoord[0]++;
+        }
+        return true;
     }
 
     const isShipValid =(shipName)=>{
@@ -126,7 +139,7 @@ function Gameboard(){
         }
         if(shipObj.ship.getStatus() != Status.undeployed){
             console.log(shipObj.ship.getStatus())
-            console.log("error, can not place an already deployed or sunk ship");
+            console.log("can not place an already deployed or sunk ship");
             return false;
         }
         return true;
@@ -157,7 +170,7 @@ function Gameboard(){
         let shipObj = Fleet[shipName];
         let ship = shipObj.ship;
         let shipLength = ship.getLength();
-        if(!isPlacementValid(midCoord, direction, shipLength)){
+        if(!isPlacementValid(midCoord, direction, shipName)){
             return false;
         }
         let shipCoordinates = getPlacement(midCoord, direction, shipName);
@@ -203,7 +216,7 @@ function Gameboard(){
         // else cell at this coord would either have been a hit or a miss (invalid).
         if(validCells.includes(gameBoard[y][x])){
             //in order for attack to proceed all ships must be deployed and coords within bounds.
-            return (boundCheck(coord) && areShipsOnBoard())
+            return (isWithinBounds(coord) && areShipsOnBoard())
         }
         return false;
     }
@@ -256,27 +269,35 @@ function Gameboard(){
         }
     }
 
-    return {placeShip, receiveAttack, logBoard, getPlacement, getShipObjById};
+    return {getPlacement,
+            isPlacementValid, 
+            placeShip, 
+            receiveAttack,
+            getOutOfBoundCoords,
+            logBoard};
 }
 
 function Player(){
     const score = 0;
-    let board = GameBoard();
-    // const updateScore = ()=>{
-    //     // for
-    // }
+    let board = Gameboard();
     const placeShip = (coords, direction, shipName)=>{
         return board.placeShip(coords, direction, shipName);
     }
     const getPlacementCoords = (coords, direction, shipName)=>{
-        return board.placeShip(coords, direction, shipName)
+        let placementCoords = board.getPlacement(coords, direction, shipName);
+        let outOfBoundCoords = board.getOutOfBoundCoords(placementCoords);
+        let uniqueCoords = placementCoords.filter(coord => !outOfBoundCoords.includes(coord)); //intersection of the two coordinate arrays.
+        return uniqueCoords;
+    }
+    const checkPlacement = (coords, direction, shipName)=>{
+        return board.isPlacementValid(coords, direction, shipName);
     }
     const receiveAttack = (coords)=>{
         let result = board.receiveAttack(coords);
         if(result){updateScore()};
         return result;
     }
-    return{placeShip, getPlacementCoords, receiveAttack};
+    return{placeShip, getPlacementCoords, checkPlacement, receiveAttack};
 } 
 module.exports = {Ship, Gameboard, Player};
 

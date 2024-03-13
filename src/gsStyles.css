@@ -40,17 +40,32 @@
 #gsTop{
     grid-area: top;
     grid-column: span 2;
-    display: grid;
+    display: flex;
     border-bottom: 4px solid black;
     justify-content: center;
-    align-content: center;
+    align-items: center;
+    /* gap:10px */
+}
+#options{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+#options > img{
+    margin-right: 100px;
+    width: 50px;
+    border-radius: 10px;
+    background-color: rgba(0,0,0,0.2);
+    padding: 2px;
+}
+#topBoardContainer{
+    margin-right: 100px;
 }
 #topGrid{
     display: grid;
     grid-template-columns: repeat(20, var(--cell-size));
     grid-template-rows: repeat(3, var(--cell-size));
     border: 2px solid black
-
 }
 #gsLeft{
     grid-area: left;
@@ -89,13 +104,14 @@
     align-items: center;
     border: 1px dashed black;
     z-index: 1;
-    pointer-events: none;
 }
 
 #topBoardContainer, #leftBoardContainer{
     position: relative;
 }
-
+.topCells{
+    pointer-events: none;
+}
 .topShips{
     position: absolute;
     z-index: 0;
@@ -131,8 +147,12 @@
     width: calc((2*var(--cell-size)));
 }
 
-.cellHover{
+.cellHover, .validPlacement{
     background-color: rgba(14, 210, 90, 0.15);
+    cursor: pointer;
+}
+.invalidPlacement{
+    background-color: rgba(255, 0, 0, 0.15);
 }
 .shipHover{
     cursor: pointer;

@@ -174,14 +174,14 @@ const View = (function() {
         oppImg.style.transform = 'scaleX(-1)';
     }
 
-    const cellsAddClass = (cells, coordinates, cellClass)=>{
+    const cellsAddClass = (cells, gridLength, coordinates, cellClass)=>{
         coordinates.forEach(coordinate =>{
-            cells[coordinate[1]*20 + coordinate[0]].classList.add(cellClass);
+            cells[coordinate[1]*gridLength + coordinate[0]].classList.add(cellClass);
         })
     }
-    const cellsRemoveClass = (cells, coordinates, cellClass)=>{
+    const cellsRemoveClass = (cells, gridLength, coordinates, cellClass)=>{
         coordinates.forEach(coordinate =>{
-            cells[coordinate[1]*20 + coordinate[0]].classList.remove(cellClass);
+            cells[coordinate[1]*gridLength + coordinate[0]].classList.remove(cellClass);
         })
     }
     
@@ -193,7 +193,7 @@ const View = (function() {
         }
         const coordinates = shipCoordinates[shipId];
         let topCells = document.querySelectorAll(".topCells")
-        cellsAddClass(topCells, coordinates, "cellHover");
+        cellsAddClass(topCells, 20, coordinates, "cellHover");
         ship.classList.add("shipHover");
     }
 
@@ -201,10 +201,10 @@ const View = (function() {
     const topShipsDefault = (shipId)=>{
         const coordinates = shipCoordinates[shipId];
         let topCells = document.querySelectorAll(".topCells")
-        cellsRemoveClass(topCells, coordinates, "cellHover");
+        cellsRemoveClass(topCells, 20, coordinates, "cellHover");
         document.getElementById(shipId).classList.remove("shipHover");
     }
-    
+
     //click behavior to show ship is selected.
     const topShipSelected = (shipId)=>{
         let topCells = document.querySelectorAll(".topCells")
@@ -214,28 +214,41 @@ const View = (function() {
             let ship =  document.getElementById(shipName);
             coordinates = shipCoordinates[shipName];
             if(ship.classList.contains("selected")){
-                cellsRemoveClass(topCells, coordinates, "cellSelected");
+                cellsRemoveClass(topCells, 20, coordinates, "cellSelected");
                 ship.classList.remove("selected"); //unselect the ship
             }
         }
         //select the required ship, mark the cells
         coordinates = shipCoordinates[shipId];
-        cellsAddClass(topCells, coordinates, "cellSelected");
+        cellsAddClass(topCells, 20, coordinates, "cellSelected");
         topShipsDefault(shipId);
         document.getElementById(shipId).classList.add("selected"); //to mark the ship as selected, so hover effects are ignored.
 
     }
-
     const constructGrid = (dimensions, parentDiv, cellClass)=>{
         for (let i = 0; i < dimensions[0]; i++) {
             for(let j=0; j<dimensions[1]; j++){
                 const div = document.createElement('div');
                 div.classList.add("gridCell");
                 div.classList.add(cellClass);
-                div.classList.add("_" + j + "_" + i);
+                div.setAttribute('data-coords', '_' + j + '_' + i);                
                 parentDiv.appendChild(div);
             }
         }
+    }
+    const colorPlacement = (shipCoordinates, isValidPlacment)=>{
+        let leftCells = document.querySelectorAll(".leftCells")
+        if(isValidPlacment){
+            cellsAddClass(leftCells, 10, shipCoordinates, "validPlacement")
+        }else{
+            cellsAddClass(leftCells, 10, shipCoordinates, "invalidPlacement");   
+        }
+    }
+    const uncolorPlacement = (shipCoordinates)=>{
+        let leftCells = document.querySelectorAll(".leftCells");
+        cellsRemoveClass(leftCells, 10, shipCoordinates, "validPlacement");
+        cellsRemoveClass(leftCells, 10, shipCoordinates, "invalidPlacement");
+
     }
     return {fadeIn, 
         toggleMenuMusic, 
@@ -245,6 +258,8 @@ const View = (function() {
         topShipsDefault, 
         topShipsHover,
         topShipSelected,
+        colorPlacement,
+        uncolorPlacement,
     }
 })();
 

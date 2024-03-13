@@ -6,8 +6,9 @@ import View from './view.js'
 const Controller = (function() {
     let characterSelected;
     let shipSelected;
+    let direction = "horizontal"
     let player1 = Player();
-    return{characterSelected, shipSelected, player1};
+    return{characterSelected, shipSelected, direction, player1};
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -38,6 +39,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    let topShips = document.querySelectorAll(".topShips");
+    topShips.forEach(ship =>{
+        ship.addEventListener("mouseenter", function(event){
+            View.topShipsHover(event.target.id);
+        })
+        ship.addEventListener("mouseleave", function(event){
+            View.topShipsDefault(event.target.id);
+        })
+        ship.addEventListener("click", function(e){
+            View.topShipSelected(e.target.id);
+            Controller.shipSelected = e.target.getAttribute("data-ship-type");
+            // console.log(Controller.shipSelected)
+        })
+    })
+
+    document.querySelector("#leftGrid").addEventListener("mouseenter", function(e){
+        let leftCells = document.querySelectorAll(".leftCells");
+        leftCells.forEach(cell =>{
+            cell.addEventListener("mouseenter", function(e){
+                if(Controller.shipSelected != null){
+                    let [, x, y] = e.target.getAttribute("data-coords").match(/_(\d+)_(\d+)/).map(Number);
+                    let coordinates = Controller.player1.getPlacementCoords([x,y], Controller.direction, Controller.shipSelected);
+                    let isValidPlacement = Controller.player1.checkPlacement([x,y], Controller.direction, Controller.shipSelected);
+                    View.colorPlacement(coordinates, isValidPlacement);
+                }
+            })
+            cell.addEventListener("mouseleave", function(e){
+                if(Controller.shipSelected != null){
+                    let [, x, y] = e.target.getAttribute("data-coords").match(/_(\d+)_(\d+)/);
+                    let coordinates = Controller.player1.getPlacementCoords([x,y], Controller.direction, Controller.shipSelected);
+                    View.uncolorPlacement(coordinates);
+                }
+            })
+        })
+    })
+
 });
 
 document.body.addEventListener("click", function(event) {
@@ -46,24 +83,3 @@ document.body.addEventListener("click", function(event) {
     }
 });
 
-let topShips = document.querySelectorAll(".topShips");
-topShips.forEach(ship =>{
-    ship.addEventListener("mouseenter", function(event){
-        View.topShipsHover(event.target.id);
-    })
-    ship.addEventListener("mouseleave", function(event){
-        View.topShipsDefault(event.target.id);
-    })
-    ship.addEventListener("click", function(e){
-        View.topShipSelected(e.target.id);
-        Controller.shipSelected = e.target.id;
-        console.log(Controller.shipSelected)
-    })
-})
-
-let leftGrid = document.querySelector("#leftGrid");
-leftGrid.addEventListener("click", function(e){
-    if(e.target.classList.contains("gridCell") && shipSelected != null){
-        Controller.player1
-    }
-})
