@@ -17,6 +17,7 @@ import pirate1 from './assets/sounds/PirateDialogue/allHands1.wav'
 import pirate2 from './assets/sounds/PirateDialogue/hoistJelly.wav'
 import pirate3 from './assets/sounds/PirateDialogue/meRum.wav'
 import pirate4 from './assets/sounds/PirateDialogue/battenHatches.wav'
+import { Ship } from './model';
 
 const GameAudio = (function(){
     const menu = new Audio(menuMusic);
@@ -133,13 +134,13 @@ const View = (function() {
         characterButtons.forEach(button => {
             button.style.backgroundColor = "inherit";
         });
-        document.querySelector("#readyButton").classList = [];
+        document.querySelector("#startGame").classList.remove("active");
         GameAudio.stopAllDialogues();
     }
     const selectCharacter = (character)=>{
         resetSelectScreen();
         character.style.backgroundColor = "#E3E3E3";
-        document.querySelector("#readyButton").classList.add("ready");
+        document.querySelector("#startGame").classList.add("active");
         if(character.id == "viking"){
             GameAudio.playSelectDialogue("viking");
         }else if(character.id == "pirate"){
@@ -161,6 +162,19 @@ const View = (function() {
         constructGrid([3,20], topBar, "topCells");
         GameAudio.playBgMusic("stage");
     }
+
+    const constructGrid = (dimensions, parentDiv, cellClass)=>{
+        for (let i = 0; i < dimensions[0]; i++) {
+            for(let j=0; j<dimensions[1]; j++){
+                const div = document.createElement('div');
+                div.classList.add("gridCell");
+                div.classList.add(cellClass);
+                div.setAttribute('data-coords', '_' + j + '_' + i);                
+                parentDiv.appendChild(div);
+            }
+        }
+    }
+
     const displayCharacters = (characterName)=>{
         const playerImg = document.querySelector("#playerImage");
         const oppImg = document.querySelector("#opponentImage");
@@ -176,21 +190,25 @@ const View = (function() {
 
     const cellsAddClass = (cells, gridLength, coordinates, cellClass)=>{
         coordinates.forEach(coordinate =>{
-            cells[coordinate[1]*gridLength + coordinate[0]].classList.add(cellClass);
+            let index = +coordinate[1]*gridLength + +coordinate[0];
+            cells[index].classList.add(cellClass);
         })
     }
     const cellsRemoveClass = (cells, gridLength, coordinates, cellClass)=>{
         coordinates.forEach(coordinate =>{
-            cells[coordinate[1]*gridLength + coordinate[0]].classList.remove(cellClass);
+            let index = +coordinate[1]*gridLength + +coordinate[0];
+            cells[index].classList.remove(cellClass);
         })
     }
-    
+
+
     //mouseenter behaviour to set hover effects
     const topShipsHover = (shipId) => {
         let ship = document.getElementById(shipId);
-        if(ship.classList.contains("selected")){
-            return; //can't hover over ship if it's currently selected
+        if(ship.classList.contains("selected") || ship.classList.contains("shipUnavailable")){
+            return; //can't hover over ship if it's currently selected or already placed.
         }
+
         const coordinates = shipCoordinates[shipId];
         let topCells = document.querySelectorAll(".topCells")
         cellsAddClass(topCells, 20, coordinates, "cellHover");
@@ -207,35 +225,62 @@ const View = (function() {
 
     //click behavior to show ship is selected.
     const topShipSelected = (shipId)=>{
+        let ship = document.getElementById(shipId);
+        if(ship.classList.contains("selected") || ship.classList.contains("shipUnavailable")){
+            return false; //can't select ship if it's already selected or placed.
+        }
+
+        let topCells = document.querySelectorAll(".topCells")
+        //reset previous ships that might have been selected and unmark corresponding cells. 
+        unselectShips();
+        //select the required ship, mark the cells
+        let coordinates = shipCoordinates[shipId];
+        cellsAddClass(topCells, 20, coordinates, "cellSelected");
+        topShipsDefault(shipId);
+        document.getElementById(shipId).classList.add("selected"); //to mark the ship as selected, so hover effects are ignored.
+        let optionBtns = document.querySelectorAll(".optionBtn");
+        optionBtns.forEach(optionBtn =>{
+            optionBtn.classList.add("clickable");
+        })
+        return true;
+    }
+    const unselectShips = ()=>{
+        let optionBtns = document.querySelectorAll(".optionBtn");
+        optionBtns.forEach(optionBtn =>{
+            optionBtn.classList.remove("clickable");
+        })
+
         let topCells = document.querySelectorAll(".topCells")
         let coordinates;
-        //reset ships that might have been selected and unmark corresponding cells. 
         for(let shipName in shipCoordinates){
-            let ship =  document.getElementById(shipName);
+            let ship = document.getElementById(shipName);
             coordinates = shipCoordinates[shipName];
             if(ship.classList.contains("selected")){
                 cellsRemoveClass(topCells, 20, coordinates, "cellSelected");
                 ship.classList.remove("selected"); //unselect the ship
             }
         }
-        //select the required ship, mark the cells
-        coordinates = shipCoordinates[shipId];
-        cellsAddClass(topCells, 20, coordinates, "cellSelected");
-        topShipsDefault(shipId);
-        document.getElementById(shipId).classList.add("selected"); //to mark the ship as selected, so hover effects are ignored.
+    }
 
+    const topShipUnavailable = (leftShip)=>{
+        let topCells = document.querySelectorAll(".topCells");
+        let topShip = leftShip.id.replace("left", "top");
+        let coordinates = shipCoordinates[topShip];
+
+        cellsRemoveClass(topCells, 20, coordinates, "cellHover");
+        cellsAddClass(topCells, 20, coordinates, "cellUnavailable");
+        document.getElementById(topShip).classList.add("shipUnavailable");
+        unselectShips();
     }
-    const constructGrid = (dimensions, parentDiv, cellClass)=>{
-        for (let i = 0; i < dimensions[0]; i++) {
-            for(let j=0; j<dimensions[1]; j++){
-                const div = document.createElement('div');
-                div.classList.add("gridCell");
-                div.classList.add(cellClass);
-                div.setAttribute('data-coords', '_' + j + '_' + i);                
-                parentDiv.appendChild(div);
-            }
-        }
+    const topShipAvailable = (leftShip)=>{
+        let topCells = document.querySelectorAll(".topCells");
+        let topShip = leftShip.id.replace("left", "top");
+        let coordinates = shipCoordinates[topShip];
+        cellsRemoveClass(topCells, 20, coordinates, "cellUnavailable");
+        document.getElementById(topShip).classList.remove("shipUnavailable");
+        topShipsDefault(topShip);
     }
+
     const colorPlacement = (shipCoordinates, isValidPlacment)=>{
         let leftCells = document.querySelectorAll(".leftCells")
         if(isValidPlacment){
@@ -250,6 +295,47 @@ const View = (function() {
         cellsRemoveClass(leftCells, 10, shipCoordinates, "invalidPlacement");
 
     }
+    const triggerRotation = (rotateBtn, direction)=>{
+        if(direction == "horizontal"){
+            rotateBtn.classList.remove("horizontal");
+            rotateBtn.classList.add("vertical");
+        }else{
+            rotateBtn.classList.remove("vertical");
+            rotateBtn.classList.add("horizontal")
+        }
+    }
+
+
+    const placeShip = (shipPos, direction, shipName)=>{   
+        let leftCells = document.querySelectorAll(".leftCells");
+        let playerShips = document.querySelectorAll(".leftShips");
+
+        cellsRemoveClass(leftCells, 10, shipPos, "validPlacement");
+        playerShips.forEach(ship=>{
+            if(shipName == ship.getAttribute("data-ship-type")){
+                ship.style.display = "inline"
+                ship.style.left = "calc(" + shipPos[0][0] + "*var(--cell-size) + 1px)"
+                ship.style.top =  "calc(" + shipPos[0][1] + "*var(--cell-size) + 1px)"
+
+                if(direction == "vertical"){
+                    let rotateOffset = "(" + ship.getAttribute("data-width") + " * var(--cell-size)/2)"
+                    ship.style.transformOrigin = "calc(" + rotateOffset+")";
+                    ship.style.transform = "rotate(90deg)";
+                }
+                topShipUnavailable(ship);
+            }
+        })
+        document.querySelector("#resetBoard").classList.add("active")
+    }
+
+    const resetBoard = ()=>{
+        document.querySelector("#resetBoard").classList.remove("active");
+        let playerShips = document.querySelectorAll(".leftShips");
+        playerShips.forEach(ship=>{
+            ship.style.display = "none";
+            topShipAvailable(ship);
+        })
+    }
     return {fadeIn, 
         toggleMenuMusic, 
         selectCharacter, 
@@ -258,8 +344,12 @@ const View = (function() {
         topShipsDefault, 
         topShipsHover,
         topShipSelected,
+        unselectShips,
         colorPlacement,
         uncolorPlacement,
+        triggerRotation,
+        placeShip,
+        resetBoard,
     }
 })();
 

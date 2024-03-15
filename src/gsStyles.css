@@ -1,5 +1,7 @@
 :root{
     --cell-size: 40px;
+    --option-btn-size: 45px;
+    --top-margin-right: 75px;
 }
 #gsBackground{
     display: none;
@@ -37,6 +39,15 @@
     }
 }
 
+#rotate.vertical{
+    /* background-image: url("./assets/svgs/vertical.svg"); */
+    transform: scaleX(-1) rotate(-90deg);
+}
+#rotate.horizontal{
+    /* background-image: url("./assets/svgs/horizontal.svg"); */
+    transform: rotate(0deg);
+}
+
 #gsTop{
     grid-area: top;
     grid-column: span 2;
@@ -51,15 +62,29 @@
     flex-direction: column;
     gap: 20px;
 }
-#options > img{
-    margin-right: 100px;
-    width: 50px;
-    border-radius: 10px;
-    background-color: rgba(0,0,0,0.2);
-    padding: 2px;
+body .optionBtn{
+    width: 45px;
+    height: 45px;
+    background-color: inherit;
+    border: none;
+    margin-right: var(--top-margin-right);
+    opacity: 0.6;
+    cursor: default;
 }
+body .optionBtn.clickable{
+    opacity: 1;
+    cursor: pointer;
+}
+#rotate{
+    background-image: url("./assets/svgs/horizontal.svg");
+    transition: transform 0.5s ease;
+}
+#cancel{
+    background-image: url("./assets/svgs/close.svg");
+}
+
 #topBoardContainer{
-    margin-right: 100px;
+    margin-right: calc(var(--top-margin-right) + var(--option-btn-size))
 }
 #topGrid{
     display: grid;
@@ -87,6 +112,12 @@
 #leftTop, #rightTop{
     display: flex;
 }
+#leftBottom{
+    display: flex;
+    min-width: calc(10*var(--cell-size));
+    justify-content: space-around;
+    padding-top: 30px;
+}
 #leftGrid, #rightGrid{
     display: grid;
     grid-template-columns: repeat(10, var(--cell-size));
@@ -106,60 +137,98 @@
     z-index: 1;
 }
 
+#readyGame, #resetBoard{
+    min-width: 120px; /* Set a minimum width for the button */
+    max-width: max-content; /* Set maximum width based on content */
+    min-height: 30px; /* Set a minimum height for the button */
+    max-height: 60px; /* Set a maximum height for the button */
+    color: grey;
+    background-color: white;
+    cursor: default;
+}
+#resetBoard.active{
+    background-color: rgba(255, 0, 0, 0.6);
+    color: white;
+    cursor: pointer;
+}
+#resetBoard.active:hover{
+    background-color: red;
+}
+
 #topBoardContainer, #leftBoardContainer{
     position: relative;
 }
 .topCells{
     pointer-events: none;
 }
-.topShips{
+.topShips, .leftShips{
     position: absolute;
     z-index: 0;
 }
-#top-carrier{
-    top: 1px;
-    left: calc(14*var(--cell-size));
+.leftShips{
+    display: none;
+}
+
+.carrier{
     height: calc(2*var(--cell-size));
     width: calc((5*var(--cell-size)));
 }
-#top-battleship {
-    top: 1px;
-    left: calc(6 * var(--cell-size) + 1px);
+.battleship{
     height: calc(2*var(--cell-size));
     width: calc((4*var(--cell-size)));
 }
-#top-cruiser{
-    top:  calc(2 * var(--cell-size) + 1px);
-    left: calc(10 * var(--cell-size) + 1px);
+.cruiser{
     height: calc(1*var(--cell-size));
     width: calc((3*var(--cell-size)));
 }
-#top-submarine {
-    top: 1px;
-    left: calc(1* var(--cell-size) + 1px);
+.submarine{
     height: calc(var(--cell-size));
     width: calc((3*var(--cell-size)));
 }
-#top-destroyer{
-    top: calc(2* var(--cell-size) + 1px);
-    left: calc(1* var(--cell-size) + 1px);
+.destroyer{
     height: calc(var(--cell-size));
     width: calc((2*var(--cell-size)));
 }
 
+#top-carrier{
+    top: 1px;
+    left: calc(14*var(--cell-size));
+}
+#top-battleship {
+    top: 1px;
+    left: calc(6 * var(--cell-size) + 1px);
+}
+#top-cruiser{
+    top:  calc(2 * var(--cell-size) + 1px);
+    left: calc(10 * var(--cell-size) + 1px);
+}
+#top-submarine {
+    top: 1px;
+    left: calc(1* var(--cell-size) + 1px);
+}
+#top-destroyer{
+    top: calc(2* var(--cell-size) + 1px);
+    left: calc(1* var(--cell-size) + 1px);
+}
 .cellHover, .validPlacement{
     background-color: rgba(14, 210, 90, 0.15);
-    cursor: pointer;
-}
-.invalidPlacement{
-    background-color: rgba(255, 0, 0, 0.15);
-}
-.shipHover{
     cursor: pointer;
 }
 .cellSelected{
     background-color: rgba(0,0,0,0.35);
 }
+.invalidPlacement{
+    background-color: rgba(255, 0, 0, 0.15);
+}
+
+.shipHover{
+    cursor: pointer;
+}
+.shipUnavailable{
+    opacity: 0.65;
+}
+
+
 @media screen and (max-width: 1500px) {
     :root{
         --cell-size: 25px

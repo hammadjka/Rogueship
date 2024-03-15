@@ -21,25 +21,25 @@
             <img id="flag" src="./assets/menu/flag2.gif" alt="">
         </div>
         <div id="bottom">
-            <button class="startButton" data-bs-toggle="modal" data-bs-target="#modal" id="vsCpu">Player VS CPU</button>
-            <button class="startButton" id="vsCpu">PvP (TBA)</button>
+            <button class="startButton generalButton" data-bs-toggle="modal" data-bs-target="#modal" id="vsCpu">Player VS CPU</button>
+            <button class="startButton generalButton" id="vsCpu">PvP (TBA)</button>
         </div>
     </div>
     <div id="gameScreen">
         <div id="gsBackground"></div>
         <div id="gsTop">
             <div id="options">
-                <img src="./assets/svgs/rotate.svg" id="rotate" alt="">
-                <img src="./assets//svgs/close.svg" id="cancel" alt="">
+                <button class="optionBtn" id="rotate"></button>
+                <button class="optionBtn" id="cancel"></button>
             </div>
             <div id="topBoardContainer">
                 <div id="topGrid">
                 </div>
-                <img src="./assets/ships/horizontal/submarine.png" class="topShips" id="top-submarine" data-ship-type="Submarine"></img>
-                <img src="./assets/ships/horizontal/battleship.png" class="topShips" id="top-battleship" data-ship-type="Battleship"></img>
-                <img src="./assets/ships/horizontal/destroyer.png" class="topShips" id="top-destroyer" data-ship-type="Destroyer"></img>
-                <img src="./assets/ships/horizontal/cruiser.png"   class="topShips" id="top-cruiser" data-ship-type="Cruiser"></img>
-                <img src="./assets/ships/horizontal/carrier.png"   class="topShips" id="top-carrier" data-ship-type="Carrier"></img>
+                <img src="./assets/ships/horizontal/submarine.png" class="topShips submarine" id="top-submarine" data-ship-type="Submarine"></img>
+                <img src="./assets/ships/horizontal/battleship.png" class="topShips battleship" id="top-battleship" data-ship-type="Battleship"></img>
+                <img src="./assets/ships/horizontal/destroyer.png" class="topShips destroyer" id="top-destroyer" data-ship-type="Destroyer"></img>
+                <img src="./assets/ships/horizontal/cruiser.png"   class="topShips cruiser" id="top-cruiser" data-ship-type="Cruiser"></img>
+                <img src="./assets/ships/horizontal/carrier.png"   class="topShips carrier" id="top-carrier" data-ship-type="Carrier"></img>
             </div>
         </div>
         <div id="gsLeft">
@@ -48,8 +48,16 @@
             </div>
             <div id="leftBoardContainer">
                 <div id="leftGrid"></div>
+                <img src="./assets/ships/horizontal/submarine.png" class="leftShips submarine" id="left-submarine" data-ship-type="Submarine" data-width="1"></img>
+                <img src="./assets/ships/horizontal/battleship.png" class="leftShips battleship" id="left-battleship" data-ship-type="Battleship" data-width="2"></img>
+                <img src="./assets/ships/horizontal/destroyer.png" class="leftShips destroyer" id="left-destroyer" data-ship-type="Destroyer" data-width="1"></img>
+                <img src="./assets/ships/horizontal/cruiser.png"   class="leftShips cruiser" id="left-cruiser" data-ship-type="Cruiser" data-width="1"></img>
+                <img src="./assets/ships/horizontal/carrier.png"   class="leftShips carrier" id="left-carrier" data-ship-type="Carrier" data-width="2"></img>
             </div>
-            
+            <div id="leftBottom">
+                <button class="generalButton" id="resetBoard">Reset board</button>
+                <button class="generalButton" id="readyGame">Ready</button>
+            </div>
         </div>
         <div id="gsRight">
             <div id="rightTop">
@@ -79,7 +87,7 @@
                 </div>
                 <div class="modal-footer">
                     <div id="buttonContainer">
-                        <button id="readyButton">start game</button>
+                        <button class="generalButton" id="startGame">start game</button>
                     </div>
                 </div>
             </div>

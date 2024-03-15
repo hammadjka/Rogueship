@@ -119,14 +119,19 @@ function Gameboard(){
     }
 
     const isPlacementValid = (midCoord, direction, shipName)=>{
+        if(!isShipValid(shipName)){
+            return false;
+        }
         let shipLength = Fleet[shipName].ship.getLength();
         let shipWidth = Fleet[shipName].ship.getWidth();
+        let midX = midCoord[0];
+        let midY = midCoord[1];
         for(let i=0; i<shipWidth; i++){
-            const {startCoord, endCoord} = coordBounds(midCoord, direction, shipLength);
+            const {startCoord, endCoord} = coordBounds([midX,midY], direction, shipLength);
             if(!(isWithinBounds(startCoord) && isWithinBounds(endCoord) && isSpaceEmpty(direction, startCoord, shipLength))){
                 return false;
             }
-            direction === Horizontal ? midCoord[1]++ : midCoord[0]++;
+            direction === Horizontal ? midY++ : midX++;
         }
         return true;
     }
@@ -134,12 +139,11 @@ function Gameboard(){
     const isShipValid =(shipName)=>{
         let shipObj = Fleet[shipName];
         if(!shipObj){
-            console.log("error, incorrect ship name")
+            // console.log("error, incorrect ship name")
             return false;
         }
         if(shipObj.ship.getStatus() != Status.undeployed){
-            console.log(shipObj.ship.getStatus())
-            console.log("can not place an already deployed or sunk ship");
+            // console.log("can not place an already deployed or sunk ship");
             return false;
         }
         return true;
@@ -150,26 +154,24 @@ function Gameboard(){
         let shipCoordinates = [];
         let shipwidth = ship.getWidth();
         let shipLength = ship.getLength();
+        let midX = midCoord[0];
+        let midY = midCoord[1];
         for(let i=0; i<shipwidth; i++){
-            const {startCoord, endCoord} = coordBounds(midCoord, direction, shipLength);
+            const {startCoord, endCoord} = coordBounds([midX, midY], direction, shipLength);
             let x = startCoord[0];
             let y = startCoord[1];
             for(let j=0; j<shipLength; j++){
                 shipCoordinates.push([x,y]);
                 direction === Horizontal ? x++ : y++;
             }
-            direction === Horizontal ? midCoord[1]++ : midCoord[0]++;
+            direction === Horizontal ? midY++ : midX++;
         }
         return shipCoordinates;
     }
 
     const placeShip = (midCoord, direction, shipName)=>{
-        if(!isShipValid(shipName)){
-            return false;
-        }
         let shipObj = Fleet[shipName];
         let ship = shipObj.ship;
-        let shipLength = ship.getLength();
         if(!isPlacementValid(midCoord, direction, shipName)){
             return false;
         }
@@ -260,12 +262,13 @@ function Gameboard(){
         return false;
     }
 
-    const logBoard = ()=>{
+    const logBoard = () => {
         for (let i = 0; i < gameBoard.length; i++) {
+            let row = '';
             for (let j = 0; j < gameBoard[i].length; j++) {
-                process.stdout.write(gameBoard[i][j] + " ");
+                row += gameBoard[i][j] + " ";
             }
-            console.log();
+            console.log(row);
         }
     }
 
@@ -297,7 +300,11 @@ function Player(){
         if(result){updateScore()};
         return result;
     }
-    return{placeShip, getPlacementCoords, checkPlacement, receiveAttack};
+    const resetBoard = ()=>{
+        board = Gameboard();
+    }
+
+    return{placeShip, getPlacementCoords, checkPlacement, receiveAttack, resetBoard};
 } 
 module.exports = {Ship, Gameboard, Player};
 
