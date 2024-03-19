@@ -7,24 +7,29 @@ import vikingImg from './assets/characters/vikingIdle.gif'
 import menuMusic from './assets/sounds/GameMusic/Menu.wav'
 import levleMusic from './assets/sounds/GameMusic/Level.wav'
 import combatMusic from './assets/sounds/GameMusic/Combat.wav'
+import hitSound from './assets/sounds/GameMusic/hit.wav'
+import missSound from './assets/sounds/GameMusic/miss.wav'
 
 import viking1 from './assets/sounds/VikingDialogue/sheildTosheild.wav'
 import viking2 from './assets/sounds/VikingDialogue/thorJudge.wav'
 import viking3 from './assets/sounds/VikingDialogue/valhallaAdmits.wav'
 import viking4 from './assets/sounds/VikingDialogue/leaveMe.wav'
+import viking5 from './assets/sounds/VikingDialogue/toArms.wav'
 
 import pirate1 from './assets/sounds/PirateDialogue/allHands1.wav'
-import pirate2 from './assets/sounds/PirateDialogue/hoistJelly.wav'
+import pirate2 from './assets/sounds/PirateDialogue/fireInTheHole.wav'
 import pirate3 from './assets/sounds/PirateDialogue/meRum.wav'
 import pirate4 from './assets/sounds/PirateDialogue/battenHatches.wav'
-import { Ship } from './model';
+import pirate5 from './assets/sounds/PirateDialogue/hoistJelly.wav'
 
 const GameAudio = (function(){
     const menu = new Audio(menuMusic);
     const stage = new Audio(levleMusic);
     const combat = new Audio(combatMusic);
+    const hit = new Audio(hitSound); 
+    const miss = new Audio(missSound); 
     menu.volume = 0.7;
-    combat.volume = 0.7;
+    combat.volume = 0.5;
 
     const V_SelectD1 = new Audio(viking1);
     const V_SelectD2 = new Audio(viking2);
@@ -36,7 +41,8 @@ const GameAudio = (function(){
     const P_SelectD3 = new Audio(pirate3);
     const P_SelectD4 = new Audio(pirate4);
 
-
+    const V_Start = new Audio(viking5);
+    const P_Start = new Audio(pirate5);
 
     const bgMusic = {menu, stage, combat};
     const dialogueObj = {
@@ -76,11 +82,28 @@ const GameAudio = (function(){
         }
         menu.volume = 0.7;    
     }
-    const playBgMusic = (audioName)=>{
+    const playBgMusic = (audioName, fadeDuration = 2000) => {
         stopAllBgMusic();
-        bgMusic[audioName].loop = true;
-        bgMusic[audioName].play();
-    }
+        const audio = bgMusic[audioName];
+        audio.volume = 0; // Start with zero volume
+        audio.loop = true;
+        audio.play();
+    
+        let currentTime = 0;
+        const fadeInInterval = 50; // Adjust the interval for smoother fading
+    
+        const fadeStep = () => {
+            currentTime += fadeInInterval;
+            if (currentTime < fadeDuration) {
+                audio.volume = (currentTime / fadeDuration);
+                setTimeout(fadeStep, fadeInInterval);
+            } else {
+                audio.volume = 1; // Ensure volume is at maximum at the end
+            }
+        };
+    
+        fadeStep();
+    };
     const stopBgMusic = (audioName)=>{
         bgMusic[audioName].pause();
     }
@@ -89,7 +112,38 @@ const GameAudio = (function(){
             stopBgMusic(audio);
         }
     }
-    return{playSelectDialogue, playBgMusic, stopBgMusic, stopAllDialogues, stopDialogue}
+    const playStartDialogue = (character)=>{
+        if(character == "viking"){
+            let dialogue =  V_Start;
+            menu.volume = 0.35;
+            dialogue.play()
+        }else{
+            let dialogue =  P_Start;
+            menu.volume = 0.35;
+            dialogue.play()
+        }
+    }
+    const attackEffects = (attackStatus) => {
+        hit.pause();
+        miss.pause();
+        hit.currentTime = 0;
+        miss.currentTime = 0;
+    
+        return new Promise((resolve) => {
+            if (attackStatus) {
+                setTimeout(() => {
+                    hit.play();
+                    hit.onended = resolve;
+                }, 50);
+            } else {
+                setTimeout(() => {
+                    miss.play();
+                    miss.onended = resolve;
+                }, 50);
+            }
+        });
+    }
+    return{playSelectDialogue,playStartDialogue, playBgMusic, stopBgMusic, stopAllDialogues, stopDialogue, attackEffects}
 })();
 
 const View = (function() {
@@ -305,13 +359,25 @@ const View = (function() {
         }
     }
 
-
-    const placeShip = (shipPos, direction, shipName)=>{   
-        let leftCells = document.querySelectorAll(".leftCells");
-        let playerShips = document.querySelectorAll(".leftShips");
-
-        cellsRemoveClass(leftCells, 10, shipPos, "validPlacement");
-        playerShips.forEach(ship=>{
+    const placeEnemyShip = (cells, ships, shipPos, direction, shipName)=>{   
+       placeShip(cells, ships, shipPos, direction, shipName, false);
+    }
+    const placePlayerShip = (cells, ships, shipPos, direction, shipName, allShipsPlaced)=>{   
+       placeShip(cells, ships, shipPos, direction, shipName, true);
+        ships.forEach(ship=>{
+            if(shipName == ship.getAttribute("data-ship-type")){
+                topShipUnavailable(ship);
+            }
+        })
+        if(allShipsPlaced){
+            document.querySelector("#readyGame").classList.add("active")
+        }
+        document.querySelector("#resetBoard").classList.add("active")
+    }
+    
+    const placeShip = (cells, ships, shipPos, direction, shipName, viewable)=>{   
+        cellsRemoveClass(cells, 10, shipPos, "validPlacement");
+        ships.forEach(ship=>{
             if(shipName == ship.getAttribute("data-ship-type")){
                 ship.style.display = "inline"
                 ship.style.left = "calc(" + shipPos[0][0] + "*var(--cell-size) + 1px)"
@@ -320,21 +386,92 @@ const View = (function() {
                 if(direction == "vertical"){
                     let rotateOffset = "(" + ship.getAttribute("data-width") + " * var(--cell-size)/2)"
                     ship.style.transformOrigin = "calc(" + rotateOffset+")";
-                    ship.style.transform = "rotate(90deg)";
+                    ship.classList.add("verticalShip");
                 }
-                topShipUnavailable(ship);
+                if(!viewable){
+                    ship.style.display = "none"
+                }
             }
         })
-        document.querySelector("#resetBoard").classList.add("active")
     }
 
     const resetBoard = ()=>{
         document.querySelector("#resetBoard").classList.remove("active");
+        document.querySelector("#readyGame").classList.remove("active")
         let playerShips = document.querySelectorAll(".leftShips");
         playerShips.forEach(ship=>{
             ship.style.display = "none";
+            ship.classList.remove("verticalShip");
             topShipAvailable(ship);
         })
+        document.querySelector
+        let rotateBtn = document.querySelector("#rotate");
+        rotateBtn.classList.remove("vertical");
+        rotateBtn.classList.add("horizontal")
+    }
+    const start = (character)=>{
+        let readyGameBtn = document.querySelector("#readyGame");
+        let resetBtn = document.querySelector("#resetBoard");
+        readyGameBtn.classList.remove("active");
+        resetBtn.classList.remove("active");
+        readyGameBtn.style.display = "none";
+        resetBtn.style.display = "none";
+        GameAudio.playBgMusic("combat");
+        GameAudio.playStartDialogue(character);
+        document.querySelector("#gsLeft").classList.add("wait");
+        document.querySelector("#gsRight").classList.add("gameStart");
+        document.querySelector("#rightGrid").classList.add("gameStart");
+        document.querySelector("#rightGrid").classList.add("hoverable");
+    }
+    const hoverRightCell = (cell)=>{
+        if(!cell.classList.contains("unhoverable") && document.querySelector("#rightGrid").classList.contains("hoverable")){
+            cell.classList.add("hoverable");
+        }
+    }
+    const unhoverRightCell = (cell)=>{
+        if(cell.classList.contains("hoverable")){
+            cell.classList.remove("hoverable");
+        }
+    }
+    const receiveAttack = async (coords, attackStatus, actor) => {
+        let targetCell;
+        let parsedCoords = '_' + coords[0] + '_' + coords[1];
+        console.log(parsedCoords);
+        if (actor == "cpu") {
+            targetCell = document.querySelector("#rightGrid").querySelector("[data-coords=" + parsedCoords + "]");
+            targetCell.classList.add("unhoverable");
+            unhoverRightCell(targetCell);
+        } else {
+            targetCell = document.querySelector("#leftGrid").querySelector("[data-coords=" + parsedCoords + "]");
+        }
+    
+        if (attackStatus == true) {
+            targetCell.classList.add("hit");
+        } else {
+            targetCell.classList.add("miss");
+        }
+        if(actor=="cpu"){
+            document.querySelector("#gsLeft").classList.add("wait");
+            document.querySelector("#rightGrid").classList.remove("gameStart") // reset the cursor
+            document.querySelector("#rightGrid").classList.remove("hoverable") // remove cell hover effect 
+            await GameAudio.attackEffects(attackStatus);
+            document.querySelector("#gsLeft").classList.remove("wait");
+            document.querySelector("#gsRight").classList.add("wait");
+
+        }else{
+            document.querySelector("#gsRight").classList.add("wait");
+            await GameAudio.attackEffects(attackStatus);
+            document.querySelector("#gsRight").classList.remove("wait");
+            document.querySelector("#rightGrid").classList.add("hoverable") // add cell hover effect 
+            document.querySelector("#gsLeft").classList.add("wait");
+            document.querySelector("#rightGrid").classList.add("gameStart") // add the cursor back
+        }
+
+    }
+    const showSunkenEnemy = (sunkenShipName, rightCells, cpuShips, shipObj)=>{
+        View.placeEnemyShip(rightCells, cpuShips, shipObj.coordinates, shipObj.direction, sunkenShipName, true);
+        let rightContainer = document.querySelector("#rightBoardContainer")
+        rightContainer.querySelector("[data-ship-type=" + sunkenShipName + "]").style.display = "inline";
     }
     return {fadeIn, 
         toggleMenuMusic, 
@@ -348,8 +485,14 @@ const View = (function() {
         colorPlacement,
         uncolorPlacement,
         triggerRotation,
-        placeShip,
+        placeEnemyShip,
+        placePlayerShip,
         resetBoard,
+        hoverRightCell,
+        unhoverRightCell,
+        receiveAttack,
+        showSunkenEnemy,
+        start,
     }
 })();
 

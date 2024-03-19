@@ -45,11 +45,11 @@ function Gameboard(){
     let submarine = Ship(3,1, Cells.su, Status.undeployed);
     let destroyer = Ship(2,1, Cells.de, Status.undeployed);
 
-    const Fleet = {"Carrier":{"ship": carrier, "coordinates": []}, 
-                   "Battleship":{"ship": battleship, "coordinates": []}, 
-                   "Cruiser":{"ship": cruiser, "coordinates": []}, 
-                   "Submarine":{"ship": submarine, "coordinates": []}, 
-                   "Destroyer":{"ship": destroyer, "coordinates": []}
+    const Fleet = {"Carrier":{"ship": carrier, "coordinates": [], "direction": ""}, 
+                   "Battleship":{"ship": battleship, "coordinates": [], "direction": ""}, 
+                   "Cruiser":{"ship": cruiser, "coordinates": [], "direction": ""}, 
+                   "Submarine":{"ship": submarine, "coordinates": [], "direction": ""}, 
+                   "Destroyer":{"ship": destroyer, "coordinates": [], "direction": ""}
     };
 
     let gameBoard = [];
@@ -171,12 +171,12 @@ function Gameboard(){
 
     const placeShip = (midCoord, direction, shipName)=>{
         let shipObj = Fleet[shipName];
-        let ship = shipObj.ship;
         if(!isPlacementValid(midCoord, direction, shipName)){
             return false;
         }
         let shipCoordinates = getPlacement(midCoord, direction, shipName);
         shipObj.coordinates = shipCoordinates;
+        shipObj.direction = direction;
         shipCoordinates.forEach(coord => {
             const x = coord[0];
             const y = coord[1];
@@ -207,6 +207,19 @@ function Gameboard(){
         });
         if(!check){console.log("all ships are not sunk yet")}
         return check;
+
+    }
+    const getSunken = ()=>{
+        let sunkenShips = [];
+        if(!areShipsOnBoard()){
+            return sunkenShips;
+        }
+        Object.keys(Fleet).forEach(shipName => {
+            if(Fleet[shipName].ship.getStatus() == Status.sunk){
+                sunkenShips.push(shipName);
+            }
+        });
+        return sunkenShips;
 
     }
     const isAttackValid = (coord)=>{
@@ -247,7 +260,6 @@ function Gameboard(){
         //if hit
         if(ids.includes(gameBoard[y][x])){
             let ship = getShipObjById(gameBoard[y][x]).ship;
-            console.log(gameBoard[y][x])
             ship.hit();
             updateBoard(x,y,Cells.hit);
             if(ship.isSunk()){
@@ -261,7 +273,9 @@ function Gameboard(){
         updateBoard(x,y,Cells.miss);
         return false;
     }
-
+    const getFleet = ()=>{
+        return Fleet;
+    }
     const logBoard = () => {
         for (let i = 0; i < gameBoard.length; i++) {
             let row = '';
@@ -277,6 +291,9 @@ function Gameboard(){
             placeShip, 
             receiveAttack,
             getOutOfBoundCoords,
+            areShipsOnBoard,
+            getFleet,
+            getSunken,
             logBoard};
 }
 
@@ -297,27 +314,92 @@ function Player(){
     }
     const receiveAttack = (coords)=>{
         let result = board.receiveAttack(coords);
-        if(result){updateScore()};
+        // if(result){updateScore()};
         return result;
     }
     const resetBoard = ()=>{
         board = Gameboard();
     }
-
-    return{placeShip, getPlacementCoords, checkPlacement, receiveAttack, resetBoard};
+    const areShipsOnBoard = ()=>{
+        return board.areShipsOnBoard();
+    }
+    const getFleet = ()=>{
+        return board.getFleet();
+    }
+    const getSunken = ()=>{
+        return board.getSunken();
+    }
+    return{placeShip, 
+        getPlacementCoords, 
+        checkPlacement, 
+        areShipsOnBoard, 
+        receiveAttack,
+        getFleet,
+        getSunken,
+        resetBoard};
 } 
-module.exports = {Ship, Gameboard, Player};
 
-// let gameBoard = Gameboard();
-// gameBoard.placeShip([2,2], "vertical", "Carrier")
-// gameBoard.placeShip([5,8], "horizontal", "Battleship")
-// gameBoard.placeShip([2,7], "vertical", "Submarine")
-// gameBoard.placeShip([7,2], "horizontal", "Cruiser")
-// gameBoard.placeShip([4,5], "horizontal", "Destroyer")
+function Computer(){
+    let cpu = Player();
+    let availableCoords = [];
+    let movesUsed = [];
+    const validRange = [0,1,2,3,4,5,6,7,8,9];
+    const Horizontal = "horizontal";
+    const Vertical = "vertical";
+    let shipNames = ["Carrier", "Battleship", "Cruiser", "Submarine", "Destroyer"];
 
-// gameBoard.logBoard();
+    const init = ()=>{
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < 10; j++) {
+                availableCoords.push([i,j]);
+            }
+        }
+    }
+    init();
 
-// gameBoard.placeShip([9,0], "horizontal", "Cruiser")
+    const pickRandomFromArray = (array)=>{
+        const randomIndex = Math.floor(Math.random() * array.length);
+        return array[randomIndex];
+    }
+    const placeShip = ()=>{
+        let check = true;
+        while(check){
+            let x = pickRandomFromArray(validRange);
+            let y = pickRandomFromArray(validRange);
+            let direction = pickRandomFromArray([Horizontal, Vertical]);
+            let shipName = pickRandomFromArray(shipNames);
+            if(cpu.checkPlacement([x,y], direction, shipName)){
+                cpu.placeShip([x,y], direction, shipName);
+                shipNames = shipNames.filter(item => item !== shipName);
+                check = false;
+            }
+        }
+    }
+    const placeShips = ()=>{
+        while(cpu.areShipsOnBoard() != true){
+            placeShip();
+        }
+    }
+    const getFleet = ()=>{
+        return cpu.getFleet();
+    }
+    const receiveAttack = (coords)=>{
+        return cpu.receiveAttack(coords);
+    }
+    const getSunken = ()=>{
+        return cpu.getSunken();
+    }
 
-// emptyBoard = Gameboard();
-// console.log(emptyBoard.receiveAttack([2,2]));
+    //if haven't hit a new ship, make a random move.
+    //keep track of ships sunk, if we hit a ship but have not sunk it yet
+    //make move on coords that'll most likely be part of the ship that was previously hit.
+    const makeMove = ()=>{
+        const randomIndex = Math.floor(Math.random() * availableCoords.length);
+        const pickedCoordinate = availableCoords[randomIndex];
+        availableCoords.splice(randomIndex, 1);
+        return pickedCoordinate;
+    }
+    return{placeShips, receiveAttack, getFleet, getSunken, makeMove};
+}
+module.exports = {Ship, Gameboard, Player, Computer};
+

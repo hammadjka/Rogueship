@@ -2,6 +2,7 @@
     --cell-size: 40px;
     --option-btn-size: 45px;
     --top-margin-right: 75px;
+    --cursor-size: 16;
 }
 #gsBackground{
     display: none;
@@ -48,6 +49,9 @@
     transform: rotate(0deg);
 }
 
+.verticalShip{
+    transform: rotate(90deg);
+}
 #gsTop{
     grid-area: top;
     grid-column: span 2;
@@ -63,8 +67,8 @@
     gap: 20px;
 }
 body .optionBtn{
-    width: 45px;
-    height: 45px;
+    width:calc(var(--cell-size) + 5px);
+    height: calc(var(--cell-size) + 5px);
     background-color: inherit;
     border: none;
     margin-right: var(--top-margin-right);
@@ -80,7 +84,7 @@ body .optionBtn.clickable{
     transition: transform 0.5s ease;
 }
 #cancel{
-    background-image: url("./assets/svgs/close.svg");
+    background-image: url("./assets/svgs/close2.svg");
 }
 
 #topBoardContainer{
@@ -94,13 +98,22 @@ body .optionBtn.clickable{
 }
 #gsLeft{
     grid-area: left;
+    background-color: rgba(0,0,0,0.0);
+    transition: background-color 0.4s;
 }
 #gsRight{
     grid-area: right;
     border-left: 3px solid black;
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(0,0,0,0.5);
+    transition: background-color 0.4s;
 }
-#opponentImage{
+#gsRight.gameStart{
+    background-color: rgba(0,0,0,0.0);
+}
+#gsLeft.wait, #gsRight.wait{
+    background-color: rgba(0,0,0,0.5);
+}
+.characterImage{
     z-index: -1;
 }
 #gsLeft, #gsRight{
@@ -123,6 +136,12 @@ body .optionBtn.clickable{
     grid-template-columns: repeat(10, var(--cell-size));
     grid-template-rows: repeat(10, var(--cell-size));
     border: 2px solid black
+}
+#rightGrid.gameStart{
+    cursor: url("./assets//svgs/crosshairs.svg") 16 16, auto;
+}
+#rightGrid .hoverable{
+    background-color: rgba(0,0,0,0.35); 
 }
 #playerImage, #opponentImage{
     width: 200px;
@@ -147,26 +166,36 @@ body .optionBtn.clickable{
     cursor: default;
 }
 #resetBoard.active{
-    background-color: rgba(255, 0, 0, 0.6);
+    background-color: rgba(255, 0, 0, 0.55);
     color: white;
     cursor: pointer;
 }
 #resetBoard.active:hover{
     background-color: red;
 }
+#readyGame.active{
+    background-color: rgba(0,0,0,0.55);
+    color: white;
+    cursor: pointer;
+}
+#readyGame.active:hover{
+    background-color: black;
+    box-shadow: inset 0 0 0 1px black;
 
-#topBoardContainer, #leftBoardContainer{
+}
+#topBoardContainer, #leftBoardContainer, #rightBoardContainer{
     position: relative;
 }
 .topCells{
     pointer-events: none;
 }
-.topShips, .leftShips{
+.topShips, .leftShips, .rightShips{
     position: absolute;
     z-index: 0;
 }
-.leftShips{
+.leftShips, .rightShips{
     display: none;
+    z-index: -1;
 }
 
 .carrier{
@@ -210,6 +239,7 @@ body .optionBtn.clickable{
     top: calc(2* var(--cell-size) + 1px);
     left: calc(1* var(--cell-size) + 1px);
 }
+
 .cellHover, .validPlacement{
     background-color: rgba(14, 210, 90, 0.15);
     cursor: pointer;
@@ -220,18 +250,25 @@ body .optionBtn.clickable{
 .invalidPlacement{
     background-color: rgba(255, 0, 0, 0.15);
 }
-
 .shipHover{
     cursor: pointer;
 }
 .shipUnavailable{
     opacity: 0.65;
 }
-
-
+.miss, .hit{
+    cursor: default;
+    z-index: 0;
+}
+.miss{
+    background: rgba(0,0,0,0.1) url("./assets/svgs/miss.svg") center / calc(0.4 * var(--cell-size)) no-repeat;
+}
+.hit{
+    background: rgba(0,0,0,0.1) url("./assets/svgs/close.svg") center / calc(0.6* var(--cell-size)) no-repeat;
+}
 @media screen and (max-width: 1500px) {
     :root{
-        --cell-size: 25px
+        --cell-size: 25px;
     }
     #playerImage, #opponentImage{
         width: 130px;

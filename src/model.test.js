@@ -104,3 +104,32 @@ describe('Gameboard > receiveAttack()', ()=>{
         expect(gameBoard.receiveAttack([4,2])).toBe(undefined);
     });
 })
+
+describe('Gameboard > getSunken()', ()=>{
+    beforeEach(()=>{
+        gameBoard = Gameboard();
+        gameBoard.placeShip([2,2], "vertical", "Carrier")
+        gameBoard.placeShip([5,8], "horizontal", "Battleship")
+        gameBoard.placeShip([2,7], "vertical", "Submarine")
+        gameBoard.placeShip([7,2], "horizontal", "Cruiser")
+        gameBoard.placeShip([4,5], "horizontal", "Destroyer")
+    })
+    test("should return sunk ships name", ()=>{
+        gameBoard.receiveAttack([4,5]);
+        gameBoard.receiveAttack([5,5]);
+        let sunkArray = gameBoard.getSunken()
+        expect(sunkArray).toHaveLength(1);
+        expect(sunkArray).toContain("Destroyer");
+        gameBoard.receiveAttack([6,2]);
+        gameBoard.receiveAttack([7,2]);
+        gameBoard.receiveAttack([8,2]);
+        sunkArray = gameBoard.getSunken();
+        expect(sunkArray).toHaveLength(2);
+        expect(sunkArray).toContain("Destroyer");
+        expect(sunkArray).toContain("Cruiser");
+
+    });
+    test("should return empty array when no ships are sunk", ()=>{
+        expect(gameBoard.getSunken()).toHaveLength(0)
+    });
+})
