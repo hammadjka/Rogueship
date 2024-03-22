@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+       @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Jacquarda+Bastarda+9&family=Protest+Revolution&display=swap');
+    </style>
+    <link rel="shortcut icon" href="#">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <title>Battleship</title>
+<script defer src="controller.bundle.js"></script><link href="controller.min.css" rel="stylesheet"></head>
+<body>
+    <div id="content">
+        <div id="heading">
+            <h1>ROGUE SHIP</h1>
+            <button class="off" id="volBtn"><img id="volImg" class="off" src="assets/volume-off.svg" alt=""></button>
+        </div>
+        <div id="middle">
+            <img id="flag" src="assets/flag2.gif" alt="">
+        </div>
+        <div id="bottom">
+            <button class="startButton generalButton" data-bs-toggle="modal" data-bs-target="#modal" id="vsCpu">Player VS CPU</button>
+            <button class="startButton generalButton" id="vsCpu">PvP (TBA)</button>
+        </div>
+    </div>
+    <div id="gameScreen">
+        <div id="gsBackground"></div>
+        <div id="gsTop">
+            <div id="options">
+                <button class="optionBtn" id="rotate"></button>
+                <button class="optionBtn" id="cancel"></button>
+            </div>
+            <div id="topBoardContainer">
+                <div id="topGrid">
+                </div>
+                <img src="assets/submarine.png" class="topShips submarine" id="top-submarine" data-ship-type="Submarine"></img>
+                <img src="assets/battleship.png" class="topShips battleship" id="top-battleship" data-ship-type="Battleship"></img>
+                <img src="assets/destroyer.png" class="topShips destroyer" id="top-destroyer" data-ship-type="Destroyer"></img>
+                <img src="assets/cruiser.png"   class="topShips cruiser" id="top-cruiser" data-ship-type="Cruiser"></img>
+                <img src="assets/carrier.png"   class="topShips carrier" id="top-carrier" data-ship-type="Carrier"></img>
+            </div>
+        </div>
+        <div id="gsLeft">
+            <div id="leftTop">
+                <img id="playerImage" class="characterImage" alt="">
+            </div>
+            <div id="leftBoardContainer">
+                <div id="leftGrid"></div>
+                <img src="assets/submarine.png" class="leftShips submarine" id="left-submarine" data-ship-type="Submarine" data-width="1"></img>
+                <img src="assets/battleship.png" class="leftShips battleship" id="left-battleship" data-ship-type="Battleship" data-width="2"></img>
+                <img src="assets/destroyer.png" class="leftShips destroyer" id="left-destroyer" data-ship-type="Destroyer" data-width="1"></img>
+                <img src="assets/cruiser.png"   class="leftShips cruiser" id="left-cruiser" data-ship-type="Cruiser" data-width="1"></img>
+                <img src="assets/carrier.png"   class="leftShips carrier" id="left-carrier" data-ship-type="Carrier" data-width="2"></img>
+            </div>
+            <div id="leftBottom">
+                <button class="generalButton" id="resetBoard">Reset board</button>
+                <button class="generalButton" id="readyGame">Ready</button>
+            </div>
+        </div>
+        <div id="gsRight">
+            <div id="rightTop">
+                <img id="opponentImage" class="characterImage" alt="">
+            </div>
+            <div id="rightBoardContainer">
+                <div id="rightGrid"></div>
+                <img src="assets/submarine.png" class="rightShips submarine" id="right-submarine" data-ship-type="Submarine" data-width="1"></img>
+                <img src="assets/battleship.png" class="rightShips battleship" id="right-battleship" data-ship-type="Battleship" data-width="2"></img>
+                <img src="assets/destroyer.png" class="rightShips destroyer" id="right-destroyer" data-ship-type="Destroyer" data-width="1"></img>
+                <img src="assets/cruiser.png"   class="rightShips cruiser" id="right-cruiser" data-ship-type="Cruiser" data-width="1"></img>
+                <img src="assets/carrier.png"   class="rightShips carrier" id="right-carrier" data-ship-type="Carrier" data-width="2"></img>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="modal" class="modal fade">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="modalHeading">Choose your Captain</h4>
+                    <button id="closeModal" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="charDiv" id="selectPirate">
+                        <button class="select" id="pirate"></button>
+                        <h6>Blackbeard</h6>
+                    </div>
+                    <div class="charDiv" id="selectViking">
+                        <button class="select" id="viking"></button>
+                        <h6>Björn Järnsida</h6>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="buttonContainer">
+                        <button class="generalButton" id="startGame">start game</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="resultsModal" class="modal fade" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="resultsModalHeading"></h4>
+                </div>
+                <div class="modal-footer">
+                    <div id="resultButtonContainer">
+                        <button class="generalButton" id="restartGame"  data-bs-dismiss="modal" >Restart Game</button>
+                        <button class="generalButton" id="mainMenu"  data-bs-dismiss="modal">Main Menu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="audioModal" class="modal fade">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="audoModal">Allow audio?</h4>
+                    <button id="closeModal" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-footer">
+                    <div id="audioButtonContainer">
+                        <button class="generalButton" data-bs-dismiss="modal" id="unmute">Yes</button>
+                        <button class="generalButton" data-bs-dismiss="modal" id="mute">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
