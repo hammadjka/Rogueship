@@ -17,7 +17,10 @@ function Ship(length, width, id, status){
     const setStatus = (stat) =>{
         shipStatus = stat;
     }
-    return {getLength, getWidth, getId, getStatus, setStatus, hit, isSunk};
+    const resetHits = ()=>{
+        totalHits = 0;
+    }
+    return {getLength, getWidth, getId, getStatus, setStatus, hit, isSunk, resetHits};
 }
 
 function Gameboard(){
@@ -64,6 +67,15 @@ function Gameboard(){
         }
     }
     initBoard();
+    const resetBoard = ()=>{
+        initBoard();
+        for(let shipName in Fleet){
+            Fleet[shipName].ship.setStatus(Status.undeployed);
+            Fleet[shipName].ship.resetHits();
+            Fleet[shipName].coordinates = [];
+            Fleet[shipName].direction = ""
+        }
+    }
 
     const updateBoard = (x, y, newCell)=>{
         gameBoard[y][x] = newCell;
@@ -192,20 +204,19 @@ function Gameboard(){
                 check = false;
             }
         });
-        if(!check){console.log("all ships are not deployed yet")}
+        // if(!check){console.log("all ships are not deployed yet")}
         return check;
     }
     const shipsSunk = ()=>{
         if(!areShipsOnBoard()){
             return false;
         }
-        let sunkCount = 0;
+        let check = true;
         Object.keys(Fleet).forEach(shipName => {
             if(Fleet[shipName].ship.getStatus() !== Status.sunk){
-                sunkCount++;
+                check = false;
             }
         });
-        if(!check){console.log("all ships are not sunk yet")}
         return check;
 
     }
@@ -285,6 +296,12 @@ function Gameboard(){
             console.log(row);
         }
     }
+    const sinkShips = ()=>{
+        let check = true;
+        Object.keys(Fleet).forEach(shipName => {
+            Fleet[shipName].ship.setStatus(Status.sunk);
+        });
+    }
 
     return {getPlacement,
             isPlacementValid, 
@@ -294,11 +311,13 @@ function Gameboard(){
             areShipsOnBoard,
             getFleet,
             getSunken,
+            shipsSunk,
+            sinkShips,
+            resetBoard,
             logBoard};
 }
 
 function Player(){
-    const score = 0;
     let board = Gameboard();
     const placeShip = (coords, direction, shipName)=>{
         return board.placeShip(coords, direction, shipName);
@@ -313,12 +332,10 @@ function Player(){
         return board.isPlacementValid(coords, direction, shipName);
     }
     const receiveAttack = (coords)=>{
-        let result = board.receiveAttack(coords);
-        // if(result){updateScore()};
-        return result;
+        return board.receiveAttack(coords);
     }
     const resetBoard = ()=>{
-        board = Gameboard();
+        board.resetBoard();
     }
     const areShipsOnBoard = ()=>{
         return board.areShipsOnBoard();
@@ -329,6 +346,15 @@ function Player(){
     const getSunken = ()=>{
         return board.getSunken();
     }
+    const areShipsSunk = ()=>{
+        return board.shipsSunk();
+    }
+    const sinkShips = ()=>{
+        return board.sinkShips();
+    }
+    const logBoard = ()=>{
+        return board.logBoard();
+    }
     return{placeShip, 
         getPlacementCoords, 
         checkPlacement, 
@@ -336,24 +362,33 @@ function Player(){
         receiveAttack,
         getFleet,
         getSunken,
-        resetBoard};
+        resetBoard,
+        areShipsSunk,
+        sinkShips,
+        logBoard,
+    };
 } 
 
 function Computer(){
     let cpu = Player();
-    let availableCoords = [];
-    let movesUsed = [];
+    let availableCoords;
+    let hits;
     const validRange = [0,1,2,3,4,5,6,7,8,9];
     const Horizontal = "horizontal";
     const Vertical = "vertical";
-    let shipNames = ["Carrier", "Battleship", "Cruiser", "Submarine", "Destroyer"];
+    let shipNames = [];
+    let allEnemySunk = [];
 
     const init = ()=>{
+        availableCoords = [];
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
                 availableCoords.push([i,j]);
             }
         }
+        hits = [];
+        allEnemySunk = [];
+        shipNames = ["Carrier", "Battleship", "Cruiser", "Submarine", "Destroyer"];
     }
     init();
 
@@ -390,16 +425,104 @@ function Computer(){
         return cpu.getSunken();
     }
 
-    //if haven't hit a new ship, make a random move.
-    //keep track of ships sunk, if we hit a ship but have not sunk it yet
-    //make move on coords that'll most likely be part of the ship that was previously hit.
-    const makeMove = ()=>{
-        const randomIndex = Math.floor(Math.random() * availableCoords.length);
-        const pickedCoordinate = availableCoords[randomIndex];
-        availableCoords.splice(randomIndex, 1);
-        return pickedCoordinate;
+    //get next move cosnidering last move
+    const getNextMove = (hits)=>{
+        while(true){
+            let validHit = hits.find(hit => !hit.isExhausted);
+            if (!validHit) {
+                console.error("All hits exhausted");
+            }
+            let lastHit = validHit.hitCoords;
+            let lastDirection = validHit.hitDirection;
+            let nextMoves = {"right":[lastHit[0]+1,lastHit[1]],
+                            "up":[lastHit[0],lastHit[1]-1],
+                            "left":[lastHit[0]-1,lastHit[1]],
+                            "down":[lastHit[0],lastHit[1]+1],
+            }
+            // prioritize moving in the direction of the last successful move
+            // lastDirection essentially acts as a single move history
+            if(availableCoords.some(coord => JSON.stringify(coord) === JSON.stringify(nextMoves[lastDirection]))){
+                return [nextMoves[lastDirection], lastDirection];
+            }
+            else{
+                for(let moveDirection in nextMoves){
+                    if(availableCoords.find(coord => JSON.stringify(coord) === JSON.stringify(nextMoves[moveDirection]))){
+                        return [nextMoves[moveDirection], moveDirection];
+                    }
+                }
+            }
+            validHit.isExhausted = true //all possible paths from last valid hit lead to missed shots
+        }
     }
-    return{placeShips, receiveAttack, getFleet, getSunken, makeMove};
-}
-module.exports = {Ship, Gameboard, Player, Computer};
 
+    const makeMove = (playerObj)=>{
+        let newMove;
+        let index;
+        let direction = "right"; //default direction of a new move
+        //if no ship has been struck yet, pick a random coord.
+        if(hits.length == 0){
+            index = Math.floor(Math.random() * availableCoords.length);
+            newMove = availableCoords[index];
+            availableCoords.splice(index, 1);
+        }
+        else{ // if ship has been hit previously, find the next possible move from lastHit.
+            lastHit = hits[0].hitCoords;
+            lastDirection = hits[0].hitDirection;
+            [newMove, direction] = getNextMove(hits);
+            index = availableCoords.findIndex(coord => coord[0] === newMove[0] && coord[1] === newMove[1]);
+            if (index !== -1) {
+                availableCoords.splice(index, 1);
+            }
+        }
+
+        let attackStatus = playerObj.receiveAttack([newMove[0], newMove[1]]);
+        if(attackStatus){ //if attack hit a ship
+            let hitObj = {"hitCoords": [newMove[0], newMove[1]], "hitDirection":direction, "isExhausted":false};
+            hits.unshift(hitObj);
+            let updatedSunken = playerObj.getSunken();
+            let sunkenShipName = updatedSunken.find(item => !allEnemySunk.includes(item));
+            if(sunkenShipName){ // if hit caused a ship to sink.
+                allEnemySunk = updatedSunken;
+                const fleet = playerObj.getFleet();
+                const shipObj = fleet[sunkenShipName];
+                let removeNumberOfMoves = shipObj.coordinates.length;
+                hits.splice(0, removeNumberOfMoves);
+            }
+        }
+        return [newMove, attackStatus];
+
+    }
+    const addToHit = (coords, playerObj)=>{
+        playerObj.receiveAttack([coords[0], coords[1]]);
+        let hitObj = {"hitCoords": [coords[0], coords[1]], "hitDirection":"right", "isExhausted":false};
+        hits.unshift(hitObj);
+        index = availableCoords.findIndex(coord => coord[0] === coords[0] && coord[1] === coords[1]);
+        if (index !== -1) {
+            availableCoords.splice(index, 1);
+        }
+    }
+    const sinkShips = ()=>{
+        return cpu.sinkShips();
+    }
+    const areShipsSunk = ()=>{
+        return cpu.areShipsSunk();
+    }
+    const resetBoard = ()=>{
+        init();
+        return cpu.resetBoard();
+    }
+    return{placeShips, receiveAttack, getFleet, getSunken, makeMove, addToHit, areShipsSunk, sinkShips,resetBoard,};
+}
+
+// let player1 = Player();
+// player1.placeShip([2,3], "vertical", "Carrier")
+// player1.placeShip([5,8], "horizontal", "Battleship")
+// player1.placeShip([1,7], "vertical", "Submarine")
+// player1.placeShip([4,0], "horizontal", "Cruiser")
+// player1.placeShip([5,5], "horizontal", "Destroyer")
+// player1.board.logBoard();
+// let cpu = Computer();
+// cpu.placeShips();
+// cpu.addToHit([3,1], player1);
+
+module.exports = {Ship, Gameboard, Player, Computer};

@@ -9,25 +9,34 @@ import levleMusic from './assets/sounds/GameMusic/Level.wav'
 import combatMusic from './assets/sounds/GameMusic/Combat.wav'
 import hitSound from './assets/sounds/GameMusic/hit.wav'
 import missSound from './assets/sounds/GameMusic/miss.wav'
+import victorySound from './assets/sounds/GameMusic/victory.wav'
+import loseSound from './assets/sounds/GameMusic/lose.wav'
 
 import viking1 from './assets/sounds/VikingDialogue/sheildTosheild.wav'
 import viking2 from './assets/sounds/VikingDialogue/thorJudge.wav'
 import viking3 from './assets/sounds/VikingDialogue/valhallaAdmits.wav'
 import viking4 from './assets/sounds/VikingDialogue/leaveMe.wav'
 import viking5 from './assets/sounds/VikingDialogue/toArms.wav'
+import viking6 from './assets/sounds/VikingDialogue/notPossible.wav'
+import viking7 from './assets/sounds/VikingDialogue/goldCanBuy.wav'
 
 import pirate1 from './assets/sounds/PirateDialogue/allHands1.wav'
 import pirate2 from './assets/sounds/PirateDialogue/fireInTheHole.wav'
-import pirate3 from './assets/sounds/PirateDialogue/meRum.wav'
+import pirate3 from './assets/sounds/PirateDialogue/walkThePlank.wav'
 import pirate4 from './assets/sounds/PirateDialogue/battenHatches.wav'
 import pirate5 from './assets/sounds/PirateDialogue/hoistJelly.wav'
+import pirate6 from './assets/sounds/PirateDialogue/abandon.wav'
+import pirate7 from './assets/sounds/PirateDialogue/deadMan.wav'
 
 const GameAudio = (function(){
+    let mute = true;
     const menu = new Audio(menuMusic);
     const stage = new Audio(levleMusic);
     const combat = new Audio(combatMusic);
     const hit = new Audio(hitSound); 
-    const miss = new Audio(missSound); 
+    const miss = new Audio(missSound);
+    const victory = new Audio(victorySound);
+    const lose = new Audio(loseSound);
     menu.volume = 0.7;
     combat.volume = 0.5;
 
@@ -44,13 +53,21 @@ const GameAudio = (function(){
     const V_Start = new Audio(viking5);
     const P_Start = new Audio(pirate5);
 
-    const bgMusic = {menu, stage, combat};
+    const P_Lose = new Audio(pirate6);
+    const P_Win = new Audio(pirate7)
+    const V_Lose = new Audio(viking6);
+    const V_Win = new Audio(viking7);
+
+    const bgMusic = {menu, stage, combat, victory, lose};
     const dialogueObj = {
                         "viking": {V_SelectD1, V_SelectD2, V_SelectD3, V_SelectD4},
                         "pirate": {P_SelectD1, P_SelectD2, P_SelectD3, P_SelectD4}
     }
 
     const playSelectDialogue = (character)=>{
+        if(mute){
+            return;
+        }
         stopAllDialogues();
         let audioName;
         for(let ch in dialogueObj){
@@ -71,8 +88,11 @@ const GameAudio = (function(){
         });
     }
     const stopDialogue = (character, audioName)=>{
-        dialogueObj[character][audioName].pause();
-        dialogueObj[character][audioName].currentTime = 0;
+        const audio = dialogueObj[character][audioName];
+        if (!audio.paused) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
     }
     const stopAllDialogues = ()=>{
         for (let character in dialogueObj) {
@@ -82,13 +102,26 @@ const GameAudio = (function(){
         }
         menu.volume = 0.7;    
     }
-    const playBgMusic = (audioName, fadeDuration = 2000) => {
+    const playBgMusic = (audioName, isLooped = true, fromStart = false) => {
+        if(mute){
+            return;
+        }
         stopAllBgMusic();
         const audio = bgMusic[audioName];
         audio.volume = 0; // Start with zero volume
-        audio.loop = true;
-        audio.play();
-    
+        if(fromStart){
+            audio.currentTime = 0;
+        }
+        if(isLooped){
+            audio.loop = true;
+        }
+        if (audio.paused) {
+            audio.play().catch(error => {
+                // Handle error if the play() method fails
+                console.error('Failed to play audio:', error);
+            });
+        }
+        let fadeDuration = 2000;
         let currentTime = 0;
         const fadeInInterval = 50; // Adjust the interval for smoother fading
     
@@ -113,6 +146,9 @@ const GameAudio = (function(){
         }
     }
     const playStartDialogue = (character)=>{
+        if(mute){
+            return;
+        }
         if(character == "viking"){
             let dialogue =  V_Start;
             menu.volume = 0.35;
@@ -123,7 +159,50 @@ const GameAudio = (function(){
             dialogue.play()
         }
     }
+    const playEndDialogue = (character, won)=>{
+        if(mute){
+            return;
+        }
+        combat.volume = 0.35;
+        return new Promise((resolve) => {
+            if(won){
+                if(character == "pirate"){
+                    let dialogue =  P_Win;
+                    setTimeout(() => {
+                        dialogue.play();
+                        dialogue.onended = resolve;
+                    }, 50);
+                }else if(character == "viking"){
+                    let dialogue =  V_Win;
+                    setTimeout(() => {
+                        dialogue.play();
+                        dialogue.onended = resolve;
+                    }, 50);
+                }
+            }
+            else if(!won){
+                if(character == "pirate"){
+                    let dialogue =  P_Lose;
+                    setTimeout(() => {
+                        dialogue.play();
+                        dialogue.onended = resolve;
+                    }, 50);
+                }
+                else if(character == "viking"){
+                    let dialogue =  V_Lose;
+                    setTimeout(() => {
+                        dialogue.play();
+                        dialogue.onended = resolve;
+                    }, 50);
+                }
+            }
+        })
+    }
+
     const attackEffects = (attackStatus) => {
+        if(mute){
+            return;
+        }
         hit.pause();
         miss.pause();
         hit.currentTime = 0;
@@ -143,7 +222,20 @@ const GameAudio = (function(){
             }
         });
     }
-    return{playSelectDialogue,playStartDialogue, playBgMusic, stopBgMusic, stopAllDialogues, stopDialogue, attackEffects}
+    const isAudioAllowed = (check)=>{
+        mute = !check;
+        console.log(mute);
+    }
+    return{isAudioAllowed,
+        playSelectDialogue,
+        playStartDialogue, 
+        playBgMusic, 
+        stopBgMusic, 
+        stopAllDialogues, 
+        stopDialogue, 
+        playEndDialogue,
+        attackEffects,
+        stopAllBgMusic}
 })();
 
 const View = (function() {
@@ -154,15 +246,18 @@ const View = (function() {
         "top-submarine":[[1,0], [2,0], [3,0]], 
         "top-destroyer":[[1,2], [2,2]]
     }
-
-    const toggleMenuMusic = (button)=>{
+    const shipNames = ["Carrier", "Battleship", "Cruiser", "Submarine", "Destroyer"];
+    const toggleMenuMusic = ()=>{
+        let button = document.getElementById('volBtn');
         let img = document.querySelector("#volImg");
         if(button.classList.contains("off")){
+            GameAudio.isAudioAllowed(true);
             GameAudio.playBgMusic("menu");
             img.src = volumeOn;
             button.classList = [];
             button.classList.add("on");
         }else{
+            GameAudio.isAudioAllowed(false);
             GameAudio.stopBgMusic("menu");
             img.src = volumeOff;
             button.classList = [];
@@ -207,16 +302,19 @@ const View = (function() {
         document.querySelector("#content").style.display = "none";
         document.querySelector("#gameScreen").style.display = "grid";
         document.querySelector("#gsBackground").style.display = "block";
+        displayCharacters(characterName)
+
         const leftGrid = document.querySelector("#leftGrid");
         const rightGrid = document.querySelector("#rightGrid");
         const topBar = document.querySelector("#topGrid");
-        displayCharacters(characterName)
-        constructGrid([10,10], leftGrid, "leftCells");
-        constructGrid([10,10], rightGrid, "rightCells");
-        constructGrid([3,20], topBar, "topCells");
-        GameAudio.playBgMusic("stage");
+        if(!document.querySelector(".leftCells") && !document.querySelector(".rightCells") && !document.querySelector(".topCells")){
+            constructGrid([10,10], leftGrid, "leftCells");
+            constructGrid([10,10], rightGrid, "rightCells");
+            constructGrid([3,20], topBar, "topCells");
+        } 
+        GameAudio.playBgMusic("stage", true, true);
+        makePlayerReady();
     }
-
     const constructGrid = (dimensions, parentDiv, cellClass)=>{
         for (let i = 0; i < dimensions[0]; i++) {
             for(let j=0; j<dimensions[1]; j++){
@@ -404,10 +502,19 @@ const View = (function() {
             ship.classList.remove("verticalShip");
             topShipAvailable(ship);
         })
-        document.querySelector
         let rotateBtn = document.querySelector("#rotate");
         rotateBtn.classList.remove("vertical");
         rotateBtn.classList.add("horizontal")
+    }
+    const makeCpuReady = ()=>{
+        document.querySelector("#gsLeft").classList.add("wait");
+        document.querySelector("#gsRight").classList.remove("wait");
+        document.querySelector("#rightGrid").classList.add("crosshair");
+        document.querySelector("#rightGrid").classList.add("hoverable");
+    }
+    const makePlayerReady = ()=>{
+        document.querySelector("#gsLeft").classList.remove("wait");
+        document.querySelector("#gsRight").classList.add("wait");
     }
     const start = (character)=>{
         let readyGameBtn = document.querySelector("#readyGame");
@@ -416,12 +523,9 @@ const View = (function() {
         resetBtn.classList.remove("active");
         readyGameBtn.style.display = "none";
         resetBtn.style.display = "none";
-        GameAudio.playBgMusic("combat");
+        GameAudio.playBgMusic("combat", true, true);
         GameAudio.playStartDialogue(character);
-        document.querySelector("#gsLeft").classList.add("wait");
-        document.querySelector("#gsRight").classList.add("gameStart");
-        document.querySelector("#rightGrid").classList.add("gameStart");
-        document.querySelector("#rightGrid").classList.add("hoverable");
+        makeCpuReady();
     }
     const hoverRightCell = (cell)=>{
         if(!cell.classList.contains("unhoverable") && document.querySelector("#rightGrid").classList.contains("hoverable")){
@@ -433,11 +537,10 @@ const View = (function() {
             cell.classList.remove("hoverable");
         }
     }
-    const receiveAttack = async (coords, attackStatus, actor) => {
+    const receiveAttack = async (coords, attackStatus, reciever) => {
         let targetCell;
         let parsedCoords = '_' + coords[0] + '_' + coords[1];
-        console.log(parsedCoords);
-        if (actor == "cpu") {
+        if (reciever == "cpu") {
             targetCell = document.querySelector("#rightGrid").querySelector("[data-coords=" + parsedCoords + "]");
             targetCell.classList.add("unhoverable");
             unhoverRightCell(targetCell);
@@ -450,30 +553,93 @@ const View = (function() {
         } else {
             targetCell.classList.add("miss");
         }
-        if(actor=="cpu"){
+        if(reciever=="cpu"){
             document.querySelector("#gsLeft").classList.add("wait");
-            document.querySelector("#rightGrid").classList.remove("gameStart") // reset the cursor
-            document.querySelector("#rightGrid").classList.remove("hoverable") // remove cell hover effect 
+            document.querySelector("#rightGrid").classList.remove("crosshair") // set the cursor to default
+            document.querySelector("#rightGrid").classList.remove("hoverable") // remove cell hover effect
             await GameAudio.attackEffects(attackStatus);
-            document.querySelector("#gsLeft").classList.remove("wait");
-            document.querySelector("#gsRight").classList.add("wait");
+            makePlayerReady();
 
         }else{
             document.querySelector("#gsRight").classList.add("wait");
             await GameAudio.attackEffects(attackStatus);
-            document.querySelector("#gsRight").classList.remove("wait");
-            document.querySelector("#rightGrid").classList.add("hoverable") // add cell hover effect 
-            document.querySelector("#gsLeft").classList.add("wait");
-            document.querySelector("#rightGrid").classList.add("gameStart") // add the cursor back
+            makeCpuReady();
         }
 
     }
     const showSunkenEnemy = (sunkenShipName, rightCells, cpuShips, shipObj)=>{
-        View.placeEnemyShip(rightCells, cpuShips, shipObj.coordinates, shipObj.direction, sunkenShipName, true);
+        placeEnemyShip(rightCells, cpuShips, shipObj.coordinates, shipObj.direction, sunkenShipName, true);
         let rightContainer = document.querySelector("#rightBoardContainer")
         rightContainer.querySelector("[data-ship-type=" + sunkenShipName + "]").style.display = "inline";
     }
-    return {fadeIn, 
+    const restartGame = ()=>{
+        let readyGameBtn = document.querySelector("#readyGame");
+        let resetBtn = document.querySelector("#resetBoard");
+        readyGameBtn.classList.remove("active");
+        resetBtn.classList.remove("active");
+        readyGameBtn.style.display = "inline";
+        resetBtn.style.display = "inline";
+        resetBoard();
+        let rightCells = document.querySelectorAll(".rightCells");
+        let leftCells = document.querySelectorAll(".leftCells");
+        rightCells.forEach(cell=>{
+            cell.classList.remove("hit");
+            cell.classList.remove("miss");
+            cell.classList.remove("unhoverable");
+        });
+        leftCells.forEach(cell=>{
+            cell.classList.remove("hit");
+            cell.classList.remove("miss");
+        });
+        makePlayerReady();
+        document.querySelector("#rightGrid").classList.remove("crosshair") // return to default cursor
+        document.querySelector("#rightGrid").classList.remove("hoverable") // remove cell hover effect
+
+        let rightContainer = document.querySelector("#rightBoardContainer")
+        shipNames.forEach(name=>{
+            let ship = rightContainer.querySelector("[data-ship-type=" + name + "]")
+            ship.style.display = "none";
+            ship.classList.remove("verticalShip");
+        })
+        GameAudio.playBgMusic("stage", true, true);
+        
+    }
+    const gameOverScreen = async (character, winner)=>{
+        // Get the modal element
+        if(winner == "cpu"){
+            document.querySelector("#resultsModalHeading").textContent = "DEFEAT"
+            await GameAudio.playEndDialogue(character, false);
+            GameAudio.playBgMusic("lose", false, true);
+        }else{
+            document.querySelector("#resultsModalHeading").textContent = "VICTORY"
+            await GameAudio.playEndDialogue(character, true);
+            GameAudio.playBgMusic("victory", false, true);
+        }
+        const gameOverModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+        gameOverModal.show();
+    }
+    const changeToMainMenu = ()=>{
+        restartGame();
+        document.querySelector("#content").style.display = "flex";
+        document.querySelector("#gameScreen").style.display = "none";
+        document.querySelector("#gsBackground").style.display = "none";
+        let button = document.getElementById('volBtn');
+        if(button.classList.contains("on")){
+            GameAudio.playBgMusic("menu", true, true);
+        }
+    }
+    const showAudioModal = ()=>{
+        const audioModal = new bootstrap.Modal(document.getElementById('audioModal'));
+        audioModal.show();
+    }
+    const setMute = (isMute)=>{
+        if (!isMute){
+            toggleMenuMusic();
+        }
+    }
+    return {showAudioModal,
+        setMute,
+        fadeIn, 
         toggleMenuMusic, 
         selectCharacter, 
         resetSelectScreen, 
@@ -492,6 +658,9 @@ const View = (function() {
         unhoverRightCell,
         receiveAttack,
         showSunkenEnemy,
+        gameOverScreen,
+        restartGame,
+        changeToMainMenu,
         start,
     }
 })();

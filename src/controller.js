@@ -12,6 +12,7 @@ const Controller = (function() {
     let player1 = Player();
     let cpu = Computer();
     let turn = 1;
+    let gameStart = false;
 
     const setDirection = (dir) =>{
         if(dir != Horizontal && dir != Vertical){
@@ -42,6 +43,8 @@ const Controller = (function() {
         return shipSelected;
     }
     const resetBoard = ()=>{
+        player1.resetBoard();
+        View.resetBoard();
         shipSelected = null;
         direction = Horizontal;
     }
@@ -52,26 +55,82 @@ const Controller = (function() {
             turn = 1;
         }
     }
+    const checkGameOver = async (actor)=>{ 
+        let actorWon = false;
+        if(actor == "cpu"){
+            if(player1.areShipsSunk() == true){
+                actorWon = true;
+            }
+        }else{
+            if(cpu.areShipsSunk() == true){
+                actorWon = true
+            }
+        }
+        if(actorWon){
+            await View.gameOverScreen(getCharacter(),actor);
+        }
+        return actorWon;
+    }
     const cpuMove = async ()=>{
-        if(getTurn() == "CPU"){
-            let coords =  cpu.makeMove();
-            let attackStatus = player1.receiveAttack(coords);
-            await new Promise(resolve => setTimeout(resolve, 750));
-            console.log("waiting");
-            await View.receiveAttack(coords, attackStatus, "player");
-            console.log(coords);
-            console.log(attackStatus);
-            changeTurn();
+        let [coords, attackStatus] = cpu.makeMove(player1);
+        await new Promise(resolve => setTimeout(resolve, 750));
+        await View.receiveAttack(coords, attackStatus, "player");
+        await checkGameOver("cpu");
+        changeTurn();
+    }
+    const playerMove = async (e)=>{
+        if(getTurn() == "Player"){
+            let coords = e.target.getAttribute("data-coords").match(/_(\d+)_(\d+)/).map(Number);
+            if (coords) {
+                coords = coords.slice(1).map(Number);
+            }
+            let attackStatus = cpu.receiveAttack(coords);
+            if(attackStatus != undefined){
+                changeTurn();
+                await View.receiveAttack(coords, attackStatus, "cpu");
+                new Promise(resolve => setTimeout(resolve, 500));
+                let rightCells = document.querySelectorAll(".rightCells");
+                let cpuShips = document.querySelectorAll(".rightShips");    
+                if(attackStatus == true){
+                    let sunkenShips = cpu.getSunken();
+                    let cpuFleet = cpu.getFleet();
+                    sunkenShips.forEach(sunkenShipName =>{
+                        let shipObj = cpuFleet[sunkenShipName];
+                        View.showSunkenEnemy(sunkenShipName, rightCells, cpuShips, shipObj);
+                    })
+                }
+                const isGameOver = await checkGameOver("player");
+                if(!isGameOver){
+                    cpuMove();
+                }else{
+                    let cpuFleet = cpu.getFleet();
+                    for(let shipName in cpuFleet){
+                        let shipObj = cpuFleet[shipName];
+                        View.showSunkenEnemy(shipName, rightCells, cpuShips, shipObj);
+                    }
+                }
+            }
         }
     }
-
+    const restartGame = ()=>{
+        resetBoard();
+        player1.resetBoard();
+        cpu.resetBoard();
+        turn = 1;
+        gameStart = false;
+        View.restartGame();
+    }
+    const endGame = ()=>{
+        restartGame();
+        View.changeToMainMenu();
+    }
     const init = ()=>{
         const flagGif = document.getElementById('flag');
         View.fadeIn(flagGif, 500);
 
         const volumeButton = document.getElementById('volBtn');
         volumeButton.addEventListener('click', (e)=>{
-            View.toggleMenuMusic(e.target);
+            View.toggleMenuMusic();
         })
     
         const characterButtons = document.querySelectorAll(".select");
@@ -133,8 +192,6 @@ const Controller = (function() {
         let resetBoardBtn = document.querySelector("#resetBoard");
         resetBoardBtn.addEventListener("click", function(e){
             if(e.target.classList.contains("active")){
-                player1.resetBoard();
-                View.resetBoard();
                 resetBoard();
             }
         })
@@ -144,6 +201,7 @@ const Controller = (function() {
             if(e.target.classList.contains("active")){
                 cpu.placeShips();
                 View.start(getCharacter());
+                gameStart = true;
             }
         })
     
@@ -190,49 +248,31 @@ const Controller = (function() {
             let rightCells = document.querySelectorAll(".rightCells");
             rightCells.forEach(cell =>{
                 cell.addEventListener("mouseenter", function(e){
-                    let gsRight = document.querySelector("#gsRight")
-                    if(gsRight.classList.contains("gameStart")){
+                    if(gameStart){
                         View.hoverRightCell(e.target);
                     }
                 })
                 cell.addEventListener("mouseleave", function(e){
                     View.unhoverRightCell(e.target);
                 })
-                cell.addEventListener("click", async function(e){
-                    if(getTurn() == "Player"){
-                        let coords = e.target.getAttribute("data-coords").match(/_(\d+)_(\d+)/).map(Number);
-                        if (coords) {
-                            coords = coords.slice(1).map(Number);
-                        }
-                        let attackStatus = cpu.receiveAttack(coords);
-                        if(attackStatus != undefined){
-                            changeTurn();
-                            await View.receiveAttack(coords, attackStatus, "cpu");
-                            new Promise(resolve => setTimeout(resolve, 500));
-                            let rightCells = document.querySelectorAll(".rightCells");
-                            let cpuShips = document.querySelectorAll(".rightShips");    
-                            if(attackStatus == true){
-                                let sunkenShips = cpu.getSunken();
-                                let cpuFleet = cpu.getFleet();
-                                sunkenShips.forEach(sunkenShipName =>{
-                                    let shipObj = cpuFleet[sunkenShipName];
-                                    View.showSunkenEnemy(sunkenShipName, rightCells, cpuShips, shipObj);
-                                })
-                            }
-                        }
-                        //trigger cpu move
-                        cpuMove();
-                    }
-                })
+                cell.addEventListener("click", playerMove)
             })
         })
+
+        let restartButton = document.querySelector("#restartGame");
+        restartButton.addEventListener("click", restartGame)
+
+        let mainMenuButton = document.querySelector("#mainMenu");
+        mainMenuButton.addEventListener("click",  endGame);
     }
 
-
-    return{init, getCharacter, getDirection, setDirection, setShip, getShip, player1};
+    return{init, getCharacter, getDirection, setDirection, setShip, getShip};
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
+    let unmuteBtn = document.querySelector("#unmute");
+    unmuteBtn.addEventListener("click", View.toggleMenuMusic);
+    View.showAudioModal();
     Controller.init();
 });
 

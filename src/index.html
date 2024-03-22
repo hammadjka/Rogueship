@@ -100,5 +100,40 @@
             </div>
         </div>
     </div>
+
+    
+    <div id="resultsModal" class="modal fade" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="resultsModalHeading"></h4>
+                </div>
+                <div class="modal-footer">
+                    <div id="resultButtonContainer">
+                        <button class="generalButton" id="restartGame"  data-bs-dismiss="modal" >Restart Game</button>
+                        <button class="generalButton" id="mainMenu"  data-bs-dismiss="modal">Main Menu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="audioModal" class="modal fade">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="audoModal">Allow audio?</h4>
+                    <button id="closeModal" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-footer">
+                    <div id="audioButtonContainer">
+                        <button class="generalButton" data-bs-dismiss="modal" id="unmute">Yes</button>
+                        <button class="generalButton" data-bs-dismiss="modal" id="mute">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
