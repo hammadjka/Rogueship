@@ -4,7 +4,7 @@ Welcome to Rogue Ship, a thrilling battleship game set in the high seas!
 
 ## Getting Started
 
-To play Rogue Ship, simply clone this repository to your local machine and open the `index.html` file found in the `dist` folder. Ensure your audio is enabled to experience the full gameplay experience.
+To play Rogue Ship, simply head over to [RogueShip](https://hammadjka.github.io/Rogueship/) <br>OR<br> clone this repository to your local machine and open the `index.html` file found in the `dist` folder. Ensure your audio is enabled to experience the full gameplay experience.
 
 ## How to Play
 
